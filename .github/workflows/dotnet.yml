@@ -26,5 +26,5 @@ jobs:
       uses: actions/upload-artifact@v4.3.3
       with:
         name: Hesoyam
-        path: D:\a\DNS-on-Try\DNS-on-Try\DNS on Try\bin\Debug\net8.0-windows\DNS on Try.dll
+        path: D:\a\DNS-on-Try\DNS-on-Try\DNS on Try\bin\Debug\
       
