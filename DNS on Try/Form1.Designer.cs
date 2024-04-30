@@ -188,7 +188,7 @@
             // 
             // btnDNSRemove
             // 
-            btnDNSRemove.Location = new Point(12, 234);
+            btnDNSRemove.Location = new Point(93, 234);
             btnDNSRemove.Name = "btnDNSRemove";
             btnDNSRemove.Size = new Size(75, 23);
             btnDNSRemove.TabIndex = 12;
@@ -201,6 +201,7 @@
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(277, 399);
+            ControlBox = false;
             Controls.Add(btnDNSRemove);
             Controls.Add(btnDNSSet);
             Controls.Add(btnDNSAdd);
@@ -211,8 +212,12 @@
             Controls.Add(label1);
             Controls.Add(txtDNSName);
             Controls.Add(lstDNS);
+            FormBorderStyle = FormBorderStyle.None;
             Icon = (Icon)resources.GetObject("$this.Icon");
+            MinimizeBox = false;
             Name = "frmMain";
+            SizeGripStyle = SizeGripStyle.Hide;
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "DNS on Try";
             Load += frmMain_Load;
             notifyMenu.ResumeLayout(false);
