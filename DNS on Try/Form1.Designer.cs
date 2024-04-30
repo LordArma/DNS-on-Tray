@@ -38,7 +38,6 @@
             toolStripSeparator1 = new ToolStripSeparator();
             btnSettings = new ToolStripMenuItem();
             btnExit = new ToolStripMenuItem();
-            btnTest = new Button();
             lstDNS = new ListBox();
             txtDNSName = new TextBox();
             label1 = new Label();
@@ -104,16 +103,6 @@
             btnExit.Name = "btnExit";
             btnExit.Size = new Size(127, 22);
             btnExit.Text = "Exit";
-            // 
-            // btnTest
-            // 
-            btnTest.Location = new Point(12, 364);
-            btnTest.Name = "btnTest";
-            btnTest.Size = new Size(75, 23);
-            btnTest.TabIndex = 1;
-            btnTest.Text = "Test";
-            btnTest.UseVisualStyleBackColor = true;
-            btnTest.Click += btnTest_Click;
             // 
             // lstDNS
             // 
@@ -222,7 +211,6 @@
             Controls.Add(label1);
             Controls.Add(txtDNSName);
             Controls.Add(lstDNS);
-            Controls.Add(btnTest);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "frmMain";
             Text = "DNS on Try";
@@ -236,7 +224,6 @@
 
         private NotifyIcon notifyIcon1;
         private ContextMenuStrip notifyMenu;
-        private Button btnTest;
         private ToolStripMenuItem btnServers;
         private ToolStripMenuItem toolStripMenuItem1;
         private ToolStripMenuItem btnClear;
