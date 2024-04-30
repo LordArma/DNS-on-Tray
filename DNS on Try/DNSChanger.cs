@@ -8,7 +8,7 @@ using Microsoft.Data.Sqlite;
 
 namespace DNS_on_Try
 {
-    public class DNS(string DNSName, string DNS1, string DNS2)
+    public class DNS(string DNSName, string DNS1="8.8.8.8", string DNS2="4.2.2.4")
     {
         private string dnsname = DNSName;
         private string dns1 = DNS1;
@@ -34,6 +34,11 @@ namespace DNS_on_Try
         public void Save()
         {
             
+        }
+
+        public void Remove()
+        {
+
         }
     }
 }

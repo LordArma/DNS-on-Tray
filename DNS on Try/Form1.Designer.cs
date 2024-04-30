@@ -48,7 +48,6 @@
             txtDNS2 = new TextBox();
             btnDNSAdd = new Button();
             btnDNSSet = new Button();
-            btnDNSClear = new Button();
             btnDNSRemove = new Button();
             notifyMenu.SuspendLayout();
             SuspendLayout();
@@ -120,6 +119,7 @@
             // 
             lstDNS.FormattingEnabled = true;
             lstDNS.ItemHeight = 15;
+            lstDNS.Items.AddRange(new object[] { "Clear" });
             lstDNS.Location = new Point(12, 134);
             lstDNS.Name = "lstDNS";
             lstDNS.ScrollAlwaysVisible = true;
@@ -197,16 +197,6 @@
             btnDNSSet.UseVisualStyleBackColor = true;
             btnDNSSet.Click += btnDNSSet_Click;
             // 
-            // btnDNSClear
-            // 
-            btnDNSClear.Location = new Point(93, 234);
-            btnDNSClear.Name = "btnDNSClear";
-            btnDNSClear.Size = new Size(75, 23);
-            btnDNSClear.TabIndex = 11;
-            btnDNSClear.Text = "Clear";
-            btnDNSClear.UseVisualStyleBackColor = true;
-            btnDNSClear.Click += btnDNSClear_Click;
-            // 
             // btnDNSRemove
             // 
             btnDNSRemove.Location = new Point(12, 234);
@@ -223,7 +213,6 @@
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(277, 399);
             Controls.Add(btnDNSRemove);
-            Controls.Add(btnDNSClear);
             Controls.Add(btnDNSSet);
             Controls.Add(btnDNSAdd);
             Controls.Add(label3);
@@ -263,7 +252,6 @@
         private TextBox txtDNS2;
         private Button btnDNSAdd;
         private Button btnDNSSet;
-        private Button btnDNSClear;
         private Button btnDNSRemove;
     }
 }

@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Security.Policy;
 using System.Security.Principal;
 using System.Windows.Forms;
 using static DNS_on_Try.Helper;
@@ -31,8 +32,7 @@ namespace DNS_on_Try
 
         private void btnTest_Click(object sender, EventArgs e)
         {
-            //DNS dns = new("Shekan", "178.22.122.100", "185.51.200.2");
-            AddDNS("178.22.122.100", "185.51.200.2");
+            
         }
 
         private void btnClear_Click(object sender, EventArgs e)
@@ -45,29 +45,38 @@ namespace DNS_on_Try
             if (!IsAdministrator)
             {
                 AddShieldToButton(this.btnDNSSet);
-                AddShieldToButton(this.btnDNSClear);
             }
-        }
-
-        private void btnDNSClear_Click(object sender, EventArgs e)
-        {
-            ClearDNS();
         }
 
         private void btnDNSRemove_Click(object sender, EventArgs e)
         {
-            if (lstDNS.SelectedItem != null)
-                lstDNS.Items.Remove(lstDNS.SelectedItems[0]);
+            if (lstDNS.SelectedItem != null & lstDNS.SelectedItem != "Clear")
+            {
+                string strDNSName = lstDNS.SelectedItems[0].ToString();
+                lstDNS.Items.Remove(strDNSName);
+                DNS dns = new(strDNSName);
+                dns.Remove();
+            }
+                
         }
 
         private void btnDNSSet_Click(object sender, EventArgs e)
         {
-
+            if (lstDNS.SelectedItem == "Clear") { 
+                ClearDNS();
+            }
+            else
+            {
+                AddDNS("178.22.122.100", "185.51.200.2");
+            }
         }
 
         private void btnDNSAdd_Click(object sender, EventArgs e)
         {
-            lstDNS.Items.Add(txtDNSName.Text);
+            string strDNSName = txtDNSName.Text;
+            lstDNS.Items.Add(strDNSName);
+            DNS dns = new(strDNSName, txtDNS1.Text, txtDNS2.Text);
+            dns.Save();
         }
     }
 }
