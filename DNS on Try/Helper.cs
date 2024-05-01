@@ -46,7 +46,7 @@ namespace DNS_on_Try
 
         public static void AddDNS(string dns1, string dns2)
         {
-            RunCMDAsAdmin("/C netsh interface ipv4 add dnsserver \"Wi-Fi\" address=8.8.8.8 index=1 & netsh interface ipv4 add dnsserver \"Wi-Fi\" address=1.1.1.1 index=2");
+            RunCMDAsAdmin($"/C netsh interface ipv4 add dnsserver \"Wi-Fi\" address={dns1} index=1 & netsh interface ipv4 add dnsserver \"Wi-Fi\" address={dns2} index=2");
         }
 
         public static void ClearDNS()

@@ -5,6 +5,7 @@ using System.Security.Policy;
 using System.Security.Principal;
 using System.Windows.Forms;
 using static DNS_on_Try.Helper;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace DNS_on_Try
 {
@@ -47,7 +48,24 @@ namespace DNS_on_Try
             foreach (var dns in DNS.All())
             {
                 lstDNS.Items.Add(dns.Name());
+
+                ToolStripMenuItem item = new ToolStripMenuItem();
+                item = new ToolStripMenuItem();
+                item.Name = "dns" + Convert.ToString(new Random().Next(1, 99999));
+                item.Text = dns.Name();
+                item.Click += new EventHandler(MenuItemClickHandler);
+
+                btnServers.DropDownItems.Add(item);
+
             }
+        }
+
+        private void MenuItemClickHandler(object sender, EventArgs e)
+        {
+            ToolStripMenuItem clickedItem = (ToolStripMenuItem)sender;
+            string dnsName = clickedItem.Text;
+            DNS dns = new DNS(dnsName);
+            AddDNS(dns.DNS1(), dns.DNS2());
         }
 
         private void EnableAdd()
@@ -87,7 +105,9 @@ namespace DNS_on_Try
             }
             else
             {
-                AddDNS("178.22.122.100", "185.51.200.2");
+                string dnsName = strSlelectedItem;
+                DNS dns = new DNS(dnsName);
+                AddDNS(dns.DNS1(), dns.DNS2());
             }
         }
 

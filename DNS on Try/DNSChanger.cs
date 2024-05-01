@@ -25,10 +25,31 @@ namespace DNS_on_Try
             dns1 = DNS1;
             dns2 = DNS2;
             MakeDB();
+
+            if (Exist())
+            {
+                using (SqliteConnection connection = new SqliteConnection($"Data Source={dbPath}"))
+                {
+                    connection.Open();
+                    using (SqliteCommand fmd = connection.CreateCommand())
+                    {
+                        fmd.CommandText = $"SELECT * FROM {tblName} Where dnsName='{dnsname}'";
+                        SqliteDataReader r = fmd.ExecuteReader();
+                        while (r.Read())
+                        {
+                            dns1 = (string)r["dns1"];
+                            dns2 = (string)r["dns2"];
+                        }
+
+                        connection.Close();
+                    }
+                }
+            }
         }
 
         public static List<DNS> All()
         {
+            MakeDB();
             List<DNS> dns = new List<DNS>();
 
             using (SqliteConnection connection = new SqliteConnection($"Data Source={dbPath}"))
@@ -41,8 +62,8 @@ namespace DNS_on_Try
                     while (r.Read())
                     {
                         string dnsName = (string)r["dnsName"];
-                        string dns1 = (string)r["dnsName"];
-                        string dns2 = (string)r["dnsName"];
+                        string dns1 = (string)r["dns1"];
+                        string dns2 = (string)r["dns2"];
 
                         dns.Add(new DNS(dnsName, dns1, dns2));
                     }
@@ -59,7 +80,17 @@ namespace DNS_on_Try
             return dnsname;
         }
 
-        private void MakeDB()
+        public string DNS1()
+        {
+            return dns1;
+        }
+
+        public string DNS2()
+        {
+            return dns2;
+        }
+
+        private static void MakeDB()
         {
             if (!File.Exists(dbPath))
             {
