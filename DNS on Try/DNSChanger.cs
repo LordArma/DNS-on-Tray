@@ -15,6 +15,7 @@ namespace DNS_on_Try
         private string dns1 = DNS1;
         private string dns2 = DNS2;
         string dbName = "dns.db";
+        string tblName = "dnsName";
 
         private void MakeDB()
         {
@@ -22,13 +23,13 @@ namespace DNS_on_Try
             {
                 File.WriteAllBytes(dbName, new byte[0]);
 
-                using (SqliteConnection connection = new SqliteConnection("Data Source=" + dbName))
+                using (SqliteConnection connection = new SqliteConnection($"Data Source={dbName}"))
                 {
                     connection.Open();
                     SqliteCommand sqliteCmd = new SqliteCommand();
                     sqliteCmd.Connection = connection;
 
-                    sqliteCmd.CommandText = "CREATE TABLE IF NOT EXISTS dnsTable (dnsName VARCHAR(32) Primary Key, dns1 VARCHAR(32), dns2 VARCHAR(32))";
+                    sqliteCmd.CommandText = $"CREATE TABLE IF NOT EXISTS dnsTable ({tblName} VARCHAR(32) Primary Key, dns1 VARCHAR(32), dns2 VARCHAR(32))";
                     sqliteCmd.ExecuteNonQuery();
                 }
             }
@@ -36,13 +37,13 @@ namespace DNS_on_Try
 
         public bool Exist()
         {
-            using (SqliteConnection connection = new SqliteConnection("Data Source=" + dbName))
+            using (SqliteConnection connection = new SqliteConnection($"Data Source={dbName}"))
             {
                 connection.Open();
                 SqliteCommand sqliteCmd = new SqliteCommand();
                 sqliteCmd.Connection = connection;
 
-                sqliteCmd.CommandText = $"SELECT count(*) FROM dnsTable WHERE dnsName='{dnsname}'";
+                sqliteCmd.CommandText = $"SELECT count(*) FROM {tblName} WHERE dnsName='{dnsname}'";
                 int count = Convert.ToInt32(sqliteCmd.ExecuteScalar());
                 if (count > 0)
                     return true;
@@ -55,13 +56,13 @@ namespace DNS_on_Try
         {
             MakeDB();
             if (!Exist())
-                using (SqliteConnection connection = new SqliteConnection("Data Source=" + dbName))
+                using (SqliteConnection connection = new SqliteConnection($"Data Source={dbName}"))
                 {
                     connection.Open();
                     SqliteCommand sqliteCmd = new SqliteCommand();
                     sqliteCmd.Connection = connection;
 
-                    sqliteCmd.CommandText = "INSERT INTO dnsTable VALUES (@dnsName, @dns1, @dns2);";
+                    sqliteCmd.CommandText = $"INSERT INTO {tblName} VALUES (@dnsName, @dns1, @dns2);";
                     sqliteCmd.Parameters.AddWithValue("@dnsName", DNSName);
                     sqliteCmd.Parameters.AddWithValue("@dns1", DNS1);
                     sqliteCmd.Parameters.AddWithValue("@dns2", DNS2);
