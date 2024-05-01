@@ -43,6 +43,11 @@ namespace DNS_on_Try
         private void frmMain_Load(object sender, EventArgs e)
         {
             EnableAdd();
+
+            foreach (var dns in DNS.All())
+            {
+                lstDNS.Items.Add(dns.Name());
+            }
         }
 
         private void EnableAdd()

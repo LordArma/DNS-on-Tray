@@ -15,18 +15,48 @@ namespace DNS_on_Try
         private string dnsname;
         private string dns1;
         private string dns2;
-        private string strLocalApplicationData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        private string dbName = "dnsontry.db";
-        private string dbPath;
-        private string tblName = "dnsTable";
+        private static string dbName = "dnsontry.db";
+        private static string dbPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\" + dbName;
+        private static string tblName = "dnsTable";
 
         public DNS(string DNSName, string DNS1 = "8.8.8.8", string DNS2 = "4.2.2.4")
         {
             dnsname = DNSName;
             dns1 = DNS1;
             dns2 = DNS2;
-            dbPath = strLocalApplicationData + "\\" + dbName;
             MakeDB();
+        }
+
+        public static List<DNS> All()
+        {
+            List<DNS> dns = new List<DNS>();
+
+            using (SqliteConnection connection = new SqliteConnection($"Data Source={dbPath}"))
+            {
+                connection.Open();
+                using (SqliteCommand fmd = connection.CreateCommand())
+                {
+                    fmd.CommandText = $"SELECT * FROM {tblName}";
+                    SqliteDataReader r = fmd.ExecuteReader();
+                    while (r.Read())
+                    {
+                        string dnsName = (string)r["dnsName"];
+                        string dns1 = (string)r["dnsName"];
+                        string dns2 = (string)r["dnsName"];
+
+                        dns.Add(new DNS(dnsName, dns1, dns2));
+                    }
+
+                    connection.Close();
+                }
+            }
+
+            return dns;
+        }
+
+        public string Name()
+        {
+            return dnsname;
         }
 
         private void MakeDB()
