@@ -41,6 +41,24 @@ namespace DNS_on_Try
             {
                 AddShieldToButton(this.btnDNSSet);
             }
+
+            EnableAdd();
+        }
+
+        private void EnableAdd()
+        {
+            string strDNSName = txtDNSName.Text.Trim();
+            string strDNS1 = txtDNS1.Text.Trim();
+            string strDNS2 = txtDNS2.Text.Trim();
+
+            if (strDNSName != "" & strDNS1 != "")
+            {
+                btnDNSAdd.Enabled = true;
+            }
+            else
+            {
+                btnDNSAdd.Enabled = false;
+            }
         }
 
         private void btnDNSRemove_Click(object sender, EventArgs e)
@@ -52,12 +70,13 @@ namespace DNS_on_Try
                 DNS dns = new(strDNSName);
                 dns.Remove();
             }
-                
+
         }
 
         private void btnDNSSet_Click(object sender, EventArgs e)
         {
-            if (lstDNS.SelectedItem == "Clear") { 
+            if (lstDNS.SelectedItem == "Clear")
+            {
                 ClearDNS();
             }
             else
@@ -80,6 +99,21 @@ namespace DNS_on_Try
             DNS dns = new(strDNSName, txtDNS1.Text, txtDNS2.Text);
             dns.Save();
             ClearForm();
+        }
+
+        private void txtDNSName_TextChanged(object sender, EventArgs e)
+        {
+            EnableAdd();
+        }
+
+        private void txtDNS1_TextChanged(object sender, EventArgs e)
+        {
+            EnableAdd();
+        }
+
+        private void txtDNS2_TextChanged(object sender, EventArgs e)
+        {
+            EnableAdd();
         }
     }
 }
