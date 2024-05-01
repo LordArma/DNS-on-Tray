@@ -66,12 +66,20 @@ namespace DNS_on_Try
             }
         }
 
+        private void ClearForm()
+        {
+            txtDNSName.Text = "";
+            txtDNS1.Text = "";
+            txtDNS2.Text = "";
+        }
+
         private void btnDNSAdd_Click(object sender, EventArgs e)
         {
             string strDNSName = txtDNSName.Text;
             lstDNS.Items.Add(strDNSName);
             DNS dns = new(strDNSName, txtDNS1.Text, txtDNS2.Text);
             dns.Save();
+            ClearForm();
         }
     }
 }
