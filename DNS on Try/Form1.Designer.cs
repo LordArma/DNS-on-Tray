@@ -48,7 +48,6 @@
             btnDNSAdd = new Button();
             btnDNSSet = new Button();
             btnDNSRemove = new Button();
-            txtLogs = new TextBox();
             notifyMenu.SuspendLayout();
             SuspendLayout();
             // 
@@ -197,22 +196,12 @@
             btnDNSRemove.UseVisualStyleBackColor = true;
             btnDNSRemove.Click += btnDNSRemove_Click;
             // 
-            // txtLogs
-            // 
-            txtLogs.Location = new Point(12, 263);
-            txtLogs.Multiline = true;
-            txtLogs.Name = "txtLogs";
-            txtLogs.ScrollBars = ScrollBars.Vertical;
-            txtLogs.Size = new Size(237, 127);
-            txtLogs.TabIndex = 13;
-            // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(265, 402);
             ControlBox = false;
-            Controls.Add(txtLogs);
             Controls.Add(btnDNSRemove);
             Controls.Add(btnDNSSet);
             Controls.Add(btnDNSAdd);
@@ -256,6 +245,5 @@
         private Button btnDNSAdd;
         private Button btnDNSSet;
         private Button btnDNSRemove;
-        private TextBox txtLogs;
     }
 }
