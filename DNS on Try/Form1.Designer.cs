@@ -40,10 +40,10 @@
             btnExit = new ToolStripMenuItem();
             lstDNS = new ListBox();
             txtDNSName = new TextBox();
-            label1 = new Label();
-            label2 = new Label();
+            lblDNSName = new Label();
+            lblDNS1 = new Label();
             txtDNS1 = new TextBox();
-            label3 = new Label();
+            lblDNS2 = new Label();
             txtDNS2 = new TextBox();
             btnDNSAdd = new Button();
             btnDNSSet = new Button();
@@ -126,23 +126,23 @@
             txtDNSName.Text = "Shekan";
             txtDNSName.TextChanged += txtDNSName_TextChanged;
             // 
-            // label1
+            // lblDNSName
             // 
-            label1.AutoSize = true;
-            label1.Location = new Point(12, 21);
-            label1.Name = "label1";
-            label1.Size = new Size(68, 15);
-            label1.TabIndex = 4;
-            label1.Text = "DNS Name:";
+            lblDNSName.AutoSize = true;
+            lblDNSName.Location = new Point(12, 21);
+            lblDNSName.Name = "lblDNSName";
+            lblDNSName.Size = new Size(68, 15);
+            lblDNSName.TabIndex = 4;
+            lblDNSName.Text = "DNS Name:";
             // 
-            // label2
+            // lblDNS1
             // 
-            label2.AutoSize = true;
-            label2.Location = new Point(12, 50);
-            label2.Name = "label2";
-            label2.Size = new Size(42, 15);
-            label2.TabIndex = 6;
-            label2.Text = "DNS 1:";
+            lblDNS1.AutoSize = true;
+            lblDNS1.Location = new Point(12, 50);
+            lblDNS1.Name = "lblDNS1";
+            lblDNS1.Size = new Size(42, 15);
+            lblDNS1.TabIndex = 6;
+            lblDNS1.Text = "DNS 1:";
             // 
             // txtDNS1
             // 
@@ -153,14 +153,14 @@
             txtDNS1.Text = "178.22.122.100";
             txtDNS1.TextChanged += txtDNS1_TextChanged;
             // 
-            // label3
+            // lblDNS2
             // 
-            label3.AutoSize = true;
-            label3.Location = new Point(12, 79);
-            label3.Name = "label3";
-            label3.Size = new Size(42, 15);
-            label3.TabIndex = 8;
-            label3.Text = "DNS 2:";
+            lblDNS2.AutoSize = true;
+            lblDNS2.Location = new Point(12, 79);
+            lblDNS2.Name = "lblDNS2";
+            lblDNS2.Size = new Size(42, 15);
+            lblDNS2.TabIndex = 8;
+            lblDNS2.Text = "DNS 2:";
             // 
             // txtDNS2
             // 
@@ -211,11 +211,11 @@
             Controls.Add(btnDNSRemove);
             Controls.Add(btnDNSSet);
             Controls.Add(btnDNSAdd);
-            Controls.Add(label3);
+            Controls.Add(lblDNS2);
             Controls.Add(txtDNS2);
-            Controls.Add(label2);
+            Controls.Add(lblDNS1);
             Controls.Add(txtDNS1);
-            Controls.Add(label1);
+            Controls.Add(lblDNSName);
             Controls.Add(txtDNSName);
             Controls.Add(lstDNS);
             FormBorderStyle = FormBorderStyle.None;
@@ -244,10 +244,10 @@
         private ToolStripMenuItem btnSettings;
         private ListBox lstDNS;
         private TextBox txtDNSName;
-        private Label label1;
-        private Label label2;
+        private Label lblDNSName;
+        private Label lblDNS1;
         private TextBox txtDNS1;
-        private Label label3;
+        private Label lblDNS2;
         private TextBox txtDNS2;
         private Button btnDNSAdd;
         private Button btnDNSSet;
