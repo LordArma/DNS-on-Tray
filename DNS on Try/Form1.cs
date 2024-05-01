@@ -96,8 +96,10 @@ namespace DNS_on_Try
         {
             string strDNSName = txtDNSName.Text;
             lstDNS.Items.Add(strDNSName);
+
             DNS dns = new(strDNSName, txtDNS1.Text, txtDNS2.Text);
             dns.Save();
+
             ClearForm();
         }
 
