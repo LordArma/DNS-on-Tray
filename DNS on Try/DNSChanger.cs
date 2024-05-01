@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.DirectoryServices.ActiveDirectory;
 using System.Formats.Tar;
 using System.Linq;
 using System.Text;
@@ -9,21 +10,31 @@ using Microsoft.Data.Sqlite;
 
 namespace DNS_on_Try
 {
-    public class DNS(string DNSName, string DNS1="8.8.8.8", string DNS2="4.2.2.4")
+    public class DNS
     {
-        private string dnsname = DNSName;
-        private string dns1 = DNS1;
-        private string dns2 = DNS2;
-        string dbName = "dns.db";
-        string tblName = "dnsTable";
+        private string dnsname;
+        private string dns1;
+        private string dns2;
+        private string strLocalApplicationData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        private string dbName = "dnsontry.db";
+        private string dbPath;
+        private string tblName = "dnsTable";
+
+        public DNS(string DNSName, string DNS1 = "8.8.8.8", string DNS2 = "4.2.2.4")
+        {
+            dnsname = DNSName;
+            dns1 = DNS1;
+            dns2 = DNS2;
+            dbPath = strLocalApplicationData + "\\" + dbName;
+        }
 
         private void MakeDB()
         {
-            if (!File.Exists(dbName))
+            if (!File.Exists(dbPath))
             {
-                File.WriteAllBytes(dbName, new byte[0]);
+                File.WriteAllBytes(dbPath, new byte[0]);
 
-                using (SqliteConnection connection = new SqliteConnection($"Data Source={dbName}"))
+                using (SqliteConnection connection = new SqliteConnection($"Data Source={dbPath}"))
                 {
                     connection.Open();
                     SqliteCommand sqliteCmd = new SqliteCommand();
@@ -38,7 +49,7 @@ namespace DNS_on_Try
         public bool Exist()
         {
             MakeDB();
-            using (SqliteConnection connection = new SqliteConnection($"Data Source={dbName}"))
+            using (SqliteConnection connection = new SqliteConnection($"Data Source={dbPath}"))
             {
                 connection.Open();
                 SqliteCommand sqliteCmd = new SqliteCommand();
@@ -57,16 +68,16 @@ namespace DNS_on_Try
         {
             MakeDB();
             if (!Exist())
-                using (SqliteConnection connection = new SqliteConnection($"Data Source={dbName}"))
+                using (SqliteConnection connection = new SqliteConnection($"Data Source={dbPath}"))
                 {
                     connection.Open();
                     SqliteCommand sqliteCmd = new SqliteCommand();
                     sqliteCmd.Connection = connection;
 
                     sqliteCmd.CommandText = $"INSERT INTO {tblName} VALUES (@dnsName, @dns1, @dns2);";
-                    sqliteCmd.Parameters.AddWithValue("@dnsName", DNSName);
-                    sqliteCmd.Parameters.AddWithValue("@dns1", DNS1);
-                    sqliteCmd.Parameters.AddWithValue("@dns2", DNS2);
+                    sqliteCmd.Parameters.AddWithValue("@dnsName", dnsname);
+                    sqliteCmd.Parameters.AddWithValue("@dns1", dns1);
+                    sqliteCmd.Parameters.AddWithValue("@dns2", dns2);
 
                     sqliteCmd.ExecuteNonQuery();
                 }
@@ -75,7 +86,7 @@ namespace DNS_on_Try
         public void Remove()
         {
             if (Exist())
-                using (SqliteConnection connection = new SqliteConnection($"Data Source={dbName}"))
+                using (SqliteConnection connection = new SqliteConnection($"Data Source={dbPath}"))
                 {
                     connection.Open();
                     SqliteCommand sqliteCmd = new SqliteCommand();
