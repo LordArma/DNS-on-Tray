@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
+using Microsoft.VisualBasic.Devices;
 
 namespace DNS_on_Try
 {
@@ -33,7 +34,20 @@ namespace DNS_on_Try
 
         public void Save()
         {
-            
+            using (SqliteConnection db = new SqliteConnection($"Filename={dbName}"))
+            {
+                db.Open();
+
+                SqliteCommand cmd = new SqliteCommand();
+                cmd.Connection = db;
+
+                cmd.CommandText = "INSERT INTO dnsTable VALUES (@dnsName, @dns1, @dns2);";
+                cmd.Parameters.AddWithValue("@dnsName", DNSName);
+                cmd.Parameters.AddWithValue("@dns1", DNS1);
+                cmd.Parameters.AddWithValue("@dns2", DNS2);
+
+                cmd.ExecuteScalar();
+            }
         }
 
         public void Remove()
