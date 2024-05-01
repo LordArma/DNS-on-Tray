@@ -75,8 +75,11 @@ namespace DNS_on_Try
 
         private void btnDNSSet_Click(object sender, EventArgs e)
         {
-            ClearDNS();
-            if (lstDNS.SelectedItem != "Clear")
+            if (lstDNS.SelectedItem == "Clear")
+            {
+                ClearDNS();
+            }
+            else
             {
                 AddDNS("178.22.122.100", "185.51.200.2");
             }
