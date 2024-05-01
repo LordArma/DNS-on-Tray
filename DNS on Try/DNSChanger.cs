@@ -26,6 +26,7 @@ namespace DNS_on_Try
             dns1 = DNS1;
             dns2 = DNS2;
             dbPath = strLocalApplicationData + "\\" + dbName;
+            MakeDB();
         }
 
         private void MakeDB()
@@ -48,7 +49,6 @@ namespace DNS_on_Try
 
         public bool Exist()
         {
-            MakeDB();
             using (SqliteConnection connection = new SqliteConnection($"Data Source={dbPath}"))
             {
                 connection.Open();
@@ -66,7 +66,6 @@ namespace DNS_on_Try
 
         public void Save()
         {
-            MakeDB();
             if (!Exist())
                 using (SqliteConnection connection = new SqliteConnection($"Data Source={dbPath}"))
                 {
