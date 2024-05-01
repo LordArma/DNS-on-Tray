@@ -65,13 +65,13 @@
             // 
             notifyMenu.Items.AddRange(new ToolStripItem[] { btnServers, btnClear, toolStripSeparator1, btnSettings, btnExit });
             notifyMenu.Name = "notifyMenu";
-            notifyMenu.Size = new Size(128, 98);
+            notifyMenu.Size = new Size(181, 120);
             // 
             // btnServers
             // 
             btnServers.DropDownItems.AddRange(new ToolStripItem[] { toolStripMenuItem1 });
             btnServers.Name = "btnServers";
-            btnServers.Size = new Size(127, 22);
+            btnServers.Size = new Size(180, 22);
             btnServers.Text = "Servers";
             // 
             // toolStripMenuItem1
@@ -83,26 +83,27 @@
             // btnClear
             // 
             btnClear.Name = "btnClear";
-            btnClear.Size = new Size(127, 22);
+            btnClear.Size = new Size(180, 22);
             btnClear.Text = "Clear DNS";
             btnClear.Click += btnClear_Click;
             // 
             // toolStripSeparator1
             // 
             toolStripSeparator1.Name = "toolStripSeparator1";
-            toolStripSeparator1.Size = new Size(124, 6);
+            toolStripSeparator1.Size = new Size(177, 6);
             // 
             // btnSettings
             // 
             btnSettings.Name = "btnSettings";
-            btnSettings.Size = new Size(127, 22);
+            btnSettings.Size = new Size(180, 22);
             btnSettings.Text = "Settings";
             // 
             // btnExit
             // 
             btnExit.Name = "btnExit";
-            btnExit.Size = new Size(127, 22);
+            btnExit.Size = new Size(180, 22);
             btnExit.Text = "Exit";
+            btnExit.Click += btnExit_Click;
             // 
             // lstDNS
             // 

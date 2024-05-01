@@ -119,5 +119,10 @@ namespace DNS_on_Try
         {
             EnableAdd();
         }
+
+        private void btnExit_Click(object sender, EventArgs e)
+        {
+            System.Windows.Forms.Application.Exit();
+        }
     }
 }
