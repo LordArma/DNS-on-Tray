@@ -13,13 +13,13 @@ namespace DNS_on_Try
         private string dnsname = DNSName;
         private string dns1 = DNS1;
         private string dns2 = DNS2;
+        private string dbName = "dns.db";
 
         private void MakeDB()
         {
-            string dbName = "dns.db";
             if (!File.Exists(dbName))
             {
-                File.WriteAllBytes("dns.db", new byte[0]);
+                File.WriteAllBytes(dbName, new byte[0]);
 
                 using (var connection = new SqliteConnection("Data Source=" + dbName))
                 {
