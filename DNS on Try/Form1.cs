@@ -98,7 +98,8 @@ namespace DNS_on_Try
             lstDNS.Items.Add(strDNSName);
 
             DNS dns = new(strDNSName, txtDNS1.Text, txtDNS2.Text);
-            dns.Save();
+            if (!dns.Exist())
+                dns.Save();
 
             ClearForm();
         }
