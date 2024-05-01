@@ -63,11 +63,11 @@ namespace DNS_on_Try
 
         private void btnDNSRemove_Click(object sender, EventArgs e)
         {
-            if (lstDNS.SelectedItem != null & lstDNS.SelectedItem != "Clear")
+            string strSlelectedItem = Convert.ToString(lstDNS.SelectedItem) + "";
+            if (strSlelectedItem != "Clear")
             {
-                string strDNSName = lstDNS.SelectedItems[0].ToString();
-                lstDNS.Items.Remove(strDNSName);
-                DNS dns = new(strDNSName);
+                lstDNS.Items.Remove(strSlelectedItem);
+                DNS dns = new(strSlelectedItem);
                 dns.Remove();
             }
 
@@ -75,7 +75,8 @@ namespace DNS_on_Try
 
         private void btnDNSSet_Click(object sender, EventArgs e)
         {
-            if (lstDNS.SelectedItem == "Clear")
+            string strSlelectedItem = Convert.ToString(lstDNS.SelectedItem) + "";
+            if (strSlelectedItem == "Clear")
             {
                 ClearDNS();
             }
