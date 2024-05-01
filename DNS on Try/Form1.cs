@@ -18,6 +18,11 @@ namespace DNS_on_Try
 
         private void notifyIcon1_DoubleClick(object sender, EventArgs e)
         {
+            ShowMainWindow();
+        }
+
+        private void ShowMainWindow()
+        {
             if (this.WindowState != FormWindowState.Normal)
             {
                 this.WindowState = FormWindowState.Normal;
@@ -37,11 +42,6 @@ namespace DNS_on_Try
 
         private void frmMain_Load(object sender, EventArgs e)
         {
-            if (!IsAdministrator)
-            {
-                AddShieldToButton(this.btnDNSSet);
-            }
-
             EnableAdd();
         }
 
@@ -123,6 +123,17 @@ namespace DNS_on_Try
         private void btnExit_Click(object sender, EventArgs e)
         {
             System.Windows.Forms.Application.Exit();
+        }
+
+        private void btnSettings_Click(object sender, EventArgs e)
+        {
+            ShowMainWindow();
+        }
+
+        private void frmMain_Activated(object sender, EventArgs e)
+        {
+            if (!IsAdministrator)
+                AddShieldToButton(this.btnDNSSet);
         }
     }
 }
