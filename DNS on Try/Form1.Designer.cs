@@ -77,8 +77,8 @@
             // toolStripMenuItem1
             // 
             toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new Size(112, 22);
-            toolStripMenuItem1.Text = "Shekan";
+            toolStripMenuItem1.Size = new Size(101, 22);
+            toolStripMenuItem1.Text = "Clear";
             // 
             // btnClear
             // 
