@@ -15,7 +15,7 @@ namespace DNS_on_Try
         private string dns1 = DNS1;
         private string dns2 = DNS2;
         string dbName = "dns.db";
-        string tblName = "dnsName";
+        string tblName = "dnsTable";
 
         private void MakeDB()
         {
@@ -29,7 +29,7 @@ namespace DNS_on_Try
                     SqliteCommand sqliteCmd = new SqliteCommand();
                     sqliteCmd.Connection = connection;
 
-                    sqliteCmd.CommandText = $"CREATE TABLE IF NOT EXISTS dnsTable ({tblName} VARCHAR(32) Primary Key, dns1 VARCHAR(32), dns2 VARCHAR(32))";
+                    sqliteCmd.CommandText = $"CREATE TABLE IF NOT EXISTS {tblName} (dnsName VARCHAR(32) Primary Key, dns1 VARCHAR(32), dns2 VARCHAR(32))";
                     sqliteCmd.ExecuteNonQuery();
                 }
             }
@@ -37,6 +37,7 @@ namespace DNS_on_Try
 
         public bool Exist()
         {
+            MakeDB();
             using (SqliteConnection connection = new SqliteConnection($"Data Source={dbName}"))
             {
                 connection.Open();
@@ -73,7 +74,17 @@ namespace DNS_on_Try
 
         public void Remove()
         {
+            if (Exist())
+                using (SqliteConnection connection = new SqliteConnection($"Data Source={dbName}"))
+                {
+                    connection.Open();
+                    SqliteCommand sqliteCmd = new SqliteCommand();
+                    sqliteCmd.Connection = connection;
 
+                    sqliteCmd.CommandText = $"DELETE FROM {tblName} WHERE dnsName='{dnsname}'";
+
+                    sqliteCmd.ExecuteNonQuery();
+                }
         }
     }
 }
