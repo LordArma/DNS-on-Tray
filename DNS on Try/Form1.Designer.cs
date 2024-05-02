@@ -123,7 +123,6 @@
             txtDNSName.Name = "txtDNSName";
             txtDNSName.Size = new Size(143, 23);
             txtDNSName.TabIndex = 3;
-            txtDNSName.Text = "Shekan";
             txtDNSName.TextChanged += txtDNSName_TextChanged;
             // 
             // lblDNSName
@@ -150,7 +149,6 @@
             txtDNS1.Name = "txtDNS1";
             txtDNS1.Size = new Size(143, 23);
             txtDNS1.TabIndex = 5;
-            txtDNS1.Text = "178.22.122.100";
             txtDNS1.TextChanged += txtDNS1_TextChanged;
             // 
             // lblDNS2
@@ -168,7 +166,6 @@
             txtDNS2.Name = "txtDNS2";
             txtDNS2.Size = new Size(143, 23);
             txtDNS2.TabIndex = 7;
-            txtDNS2.Text = "185.51.200.2";
             txtDNS2.TextChanged += txtDNS2_TextChanged;
             // 
             // btnDNSAdd
