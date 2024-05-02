@@ -70,18 +70,6 @@ namespace DNS_on_Try
         {
             DNS dns;
 
-            # pishgaman.net
-            nameserver 5.202.100.100
-            nameserver 5.202.100.101
-
-            # shatel.ir
-            nameserver 85.15.1.14
-            nameserver 85.15.1.15
-
-            # hostiran.net
-            nameserver 172.29.0.100
-            nameserver 172.29.2.100
-
             dns = new DNS("Cloudflare", "1.1.1.1", "1.0.0.1");
             dns.Save();
 
