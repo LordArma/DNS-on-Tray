@@ -154,5 +154,6 @@ namespace DNS_on_Tray
             if (!IsAdministrator)
                 AddShieldToButton(this.btnDNSSet);
         }
+
     }
 }

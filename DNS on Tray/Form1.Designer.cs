@@ -33,7 +33,6 @@
             notifyIcon1 = new NotifyIcon(components);
             notifyMenu = new ContextMenuStrip(components);
             btnServers = new ToolStripMenuItem();
-            toolStripMenuItem1 = new ToolStripMenuItem();
             btnClear = new ToolStripMenuItem();
             toolStripSeparator1 = new ToolStripSeparator();
             btnSettings = new ToolStripMenuItem();
@@ -69,16 +68,9 @@
             // 
             // btnServers
             // 
-            btnServers.DropDownItems.AddRange(new ToolStripItem[] { toolStripMenuItem1 });
             btnServers.Name = "btnServers";
             btnServers.Size = new Size(127, 22);
             btnServers.Text = "Servers";
-            // 
-            // toolStripMenuItem1
-            // 
-            toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new Size(101, 22);
-            toolStripMenuItem1.Text = "Clear";
             // 
             // btnClear
             // 
@@ -236,7 +228,6 @@
         private NotifyIcon notifyIcon1;
         private ContextMenuStrip notifyMenu;
         private ToolStripMenuItem btnServers;
-        private ToolStripMenuItem toolStripMenuItem1;
         private ToolStripMenuItem btnClear;
         private ToolStripMenuItem btnExit;
         private ToolStripSeparator toolStripSeparator1;
