@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.Sqlite;
+using static DNS_on_Try.Helper;
 
 namespace DNS_on_Try
 {
@@ -97,6 +98,8 @@ namespace DNS_on_Try
                     sqliteCmd.CommandText = $"CREATE TABLE IF NOT EXISTS {tblName} (dnsName VARCHAR(32) Primary Key, dns1 VARCHAR(32), dns2 VARCHAR(32))";
                     sqliteCmd.ExecuteNonQuery();
                 }
+
+                AddPopularDNS();
             }
         }
 
