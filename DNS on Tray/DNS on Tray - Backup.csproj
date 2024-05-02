@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
-	<Version>0.2.1</Version>
+	<Version>0.1.0</Version>
     <RootNamespace>DNS_on_Tray</RootNamespace>
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
@@ -17,7 +17,6 @@
 	<StartupObject>DNS_on_Tray.Program</StartupObject>
 	<Title>DNS on Tray</Title>
 	<PackageReadmeFile>README.md</PackageReadmeFile>
-	<RepositoryUrl>https://github.com/LordArma/DNS-on-Tray</RepositoryUrl>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
