@@ -20,3 +20,6 @@ A simple program to easily add, remove or change current DNS of the Windows.
 - Pishgaman.net
 - Shatel.ir
 - Hostiran.net
+
+## Releases
+You can always download the last releases [here](https://github.com/LordArma/DNS-on-Tray/releases).
