@@ -19,14 +19,16 @@ namespace DNS_on_Tray
 
         private void ShowMainWindow()
         {
-            if (this.Visible == false)
+            if (this.Opacity == 0)
             {
                 this.Visible = true;
+                this.Opacity = 100;
                 this.ShowInTaskbar = true;
             }
             else
             {
                 this.Visible = false;
+                this.Opacity = 0;
                 this.ShowInTaskbar = false;
             }
         }
@@ -42,7 +44,7 @@ namespace DNS_on_Tray
             this.Location = new Point(workingArea.Right - Size.Width - 40,
                                       workingArea.Bottom - Size.Height - 16);
 
-            this.Visible = false;
+            this.Opacity = 0;
         }
 
         private void frmMain_Load(object sender, EventArgs e)
