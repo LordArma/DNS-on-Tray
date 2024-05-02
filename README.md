@@ -8,3 +8,15 @@ A simple program to easily add, remove or change current DNS of the Windows.
 
 ## Screenshot
 ![Screenshot of DNS on Try program on the system tray.](screenshot.jpg "Screenshot of DNS on Try Program")
+
+## Supported DNS Servers by Default
+- Cloudflare
+- Google Public DNS
+- Shecan.ir
+- Electro
+- 403.online
+- Begzar.ir
+- Radar.game
+- Pishgaman.net
+- Shatel.ir
+- Hostiran.net
