@@ -47,6 +47,7 @@
             btnDNSAdd = new Button();
             btnDNSSet = new Button();
             btnDNSRemove = new Button();
+            optStartup = new CheckBox();
             notifyMenu.SuspendLayout();
             SuspendLayout();
             // 
@@ -191,12 +192,24 @@
             btnDNSRemove.UseVisualStyleBackColor = true;
             btnDNSRemove.Click += btnDNSRemove_Click;
             // 
+            // optStartup
+            // 
+            optStartup.AutoSize = true;
+            optStartup.Location = new Point(12, 371);
+            optStartup.Name = "optStartup";
+            optStartup.Size = new Size(122, 19);
+            optStartup.TabIndex = 13;
+            optStartup.Text = "Launch on startup";
+            optStartup.UseVisualStyleBackColor = true;
+            optStartup.Click += optStartup_Click;
+            // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(265, 402);
             ControlBox = false;
+            Controls.Add(optStartup);
             Controls.Add(btnDNSRemove);
             Controls.Add(btnDNSSet);
             Controls.Add(btnDNSAdd);
@@ -242,5 +255,6 @@
         private Button btnDNSAdd;
         private Button btnDNSSet;
         private Button btnDNSRemove;
+        private CheckBox optStartup;
     }
 }

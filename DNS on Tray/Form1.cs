@@ -1,3 +1,4 @@
+using Microsoft.Win32;
 using static DNS_on_Tray.Helper;
 
 namespace DNS_on_Tray
@@ -36,8 +37,16 @@ namespace DNS_on_Tray
 
         private void frmMain_Load(object sender, EventArgs e)
         {
-            RunAsStartup();
             EnableAdd();
+
+            if (CanRunAsStartup())
+            {
+                optStartup.Checked = true;
+            }
+            else
+            {
+                optStartup.Checked = false;
+            }
 
             foreach (var dns in DNS.All())
             {
@@ -155,5 +164,16 @@ namespace DNS_on_Tray
                 AddShieldToButton(this.btnDNSSet);
         }
 
+        private void optStartup_Click(object sender, EventArgs e)
+        {
+            if (optStartup.Checked)
+            {
+                RunAsStartup(true);
+            }
+            else
+            {
+                RunAsStartup(false);
+            }
+        }
     }
 }

@@ -97,10 +97,37 @@ namespace DNS_on_Tray
             dns.Save();
         }
 
-        public static void RunAsStartup()
+        public static void RunAsStartup(bool agree=true)
         {
             RegistryKey rkApp = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
-            rkApp.SetValue("dnsontry", Application.ExecutablePath);
+            if (agree) {    
+                rkApp.SetValue("dnsontry", Application.ExecutablePath);
+            }
+            else
+            {
+                rkApp.DeleteValue("dnsontry", false);
+            }
+        }
+
+        public static bool CanRunAsStartup()
+        {
+            using (RegistryKey key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"))
+            {
+                if (key != null)
+                {
+                    Object o = key.GetValue("dnsontry");
+                    if (o != null)
+                    {
+                        return true;
+                    }
+
+                    return false;
+                }
+                else
+                {
+                    return false;
+                }
+            }
         }
     }
 }
