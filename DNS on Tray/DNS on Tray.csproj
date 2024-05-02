@@ -14,6 +14,8 @@
 	<Description>A simple program to easily add, remove or change current DNS of the Windows.</Description>
 	<Copyright>The MIT License</Copyright>
 	<PackageTags>DNS; System; Windows;</PackageTags>
+	<StartupObject>DNS_on_Tray.Program</StartupObject>
+	<Title>DNS on Tray</Title>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
