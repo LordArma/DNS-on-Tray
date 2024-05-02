@@ -1,11 +1,4 @@
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using System.Security.Policy;
-using System.Security.Principal;
-using System.Windows.Forms;
 using static DNS_on_Try.Helper;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace DNS_on_Try
 {
