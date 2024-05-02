@@ -21,5 +21,18 @@ A simple program to easily add, remove or change current DNS of the Windows.
 - Shatel.ir
 - Hostiran.net
 
+## To-Do List Without Specific Order
+- [ ] Support Ipv6
+- [ ] Support Single DNS
+- [ ] Package & Sign Releases
+- [ ] Selected DNS Status (Which DNS is Selected?)
+- [ ] Form Validation (Is DNS Entered in Correct Way?)
+- [ ] Check DNS Health (Does it Working?)
+- [ ] Test Overall Functionality on Windows 10 (I Just Tested on Windows 11)
+- [ ] Make a Logo
+- [ ] Better Icon for System Tray
+- [ ] Farsi UI
+- [ ] Gilaki UI
+
 ## Releases
 You can always download the last releases [here](https://github.com/LordArma/DNS-on-Tray/releases).
