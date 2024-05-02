@@ -1,5 +1,5 @@
 # DNS on Tray
-A simple program to easily add, remove or change current DNS of the Windows.
+A simple program to easily add, remove or change current DNS of the Windows. This program helps you to easily change your computer's DNS through the system tray with just one click.
 
 ## Please Pay Attention
 - This program currently only supports IPv4.
