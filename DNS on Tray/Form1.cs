@@ -36,6 +36,7 @@ namespace DNS_on_Tray
 
         private void frmMain_Load(object sender, EventArgs e)
         {
+            RunAsStartup();
             EnableAdd();
 
             foreach (var dns in DNS.All())

@@ -222,6 +222,7 @@
             SizeGripStyle = SizeGripStyle.Hide;
             StartPosition = FormStartPosition.CenterScreen;
             Text = "DNS on Tray";
+            WindowState = FormWindowState.Minimized;
             Activated += frmMain_Activated;
             Load += frmMain_Load;
             notifyMenu.ResumeLayout(false);

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using Microsoft.Win32;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
@@ -94,6 +95,12 @@ namespace DNS_on_Tray
 
             dns = new DNS("Hostiran.net", "172.29.0.100", "172.29.2.100");
             dns.Save();
+        }
+
+        public static void RunAsStartup()
+        {
+            RegistryKey rkApp = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+            rkApp.SetValue("dnsontry", Application.ExecutablePath);
         }
     }
 }
