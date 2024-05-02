@@ -1,4 +1,4 @@
-name: DNS on Try
+name: DNS on Tray
 
 on:
   push:
@@ -25,6 +25,6 @@ jobs:
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v4.3.3
       with:
-        name: DNS-on-Try
-        path: D:\a\DNS-on-Try\DNS-on-Try\DNS on Try\bin\Debug\
+        name: DNS-on-Tray
+        path: D:\a\DNS-on-Tray\DNS-on-Tray\DNS on Tray\bin\Debug\
       
