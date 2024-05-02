@@ -74,7 +74,7 @@ namespace DNS_on_Try
             string strDNS1 = txtDNS1.Text.Trim();
             string strDNS2 = txtDNS2.Text.Trim();
 
-            if (strDNSName != "" & strDNS1 != "")
+            if (strDNSName != "" & strDNS1 != "" & strDNS2 != "")
             {
                 btnDNSAdd.Enabled = true;
             }
