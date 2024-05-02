@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DNS_on_Try
 {

@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.DirectoryServices.ActiveDirectory;
-using System.Formats.Tar;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using Microsoft.Data.Sqlite;
+﻿using Microsoft.Data.Sqlite;
 
 namespace DNS_on_Try
 {
