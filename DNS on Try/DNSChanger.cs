@@ -1,7 +1,7 @@
 ﻿using Microsoft.Data.Sqlite;
-using static DNS_on_Try.Helper;
+using static DNS_on_Tray.Helper;
 
-namespace DNS_on_Try
+namespace DNS_on_Tray
 {
     public class DNS
     {

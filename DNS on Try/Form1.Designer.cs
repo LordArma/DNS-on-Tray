@@ -1,4 +1,4 @@
-﻿namespace DNS_on_Try
+﻿namespace DNS_on_Tray
 {
     partial class frmMain
     {
@@ -221,7 +221,7 @@
             Name = "frmMain";
             SizeGripStyle = SizeGripStyle.Hide;
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "DNS on Try";
+            Text = "DNS on Tray";
             Activated += frmMain_Activated;
             Load += frmMain_Load;
             notifyMenu.ResumeLayout(false);

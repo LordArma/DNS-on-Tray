@@ -1,4 +1,4 @@
-namespace DNS_on_Try
+namespace DNS_on_Tray
 {
     internal static class Program
     {

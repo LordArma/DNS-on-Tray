@@ -1,4 +1,4 @@
-# DNS on Try
+# DNS on Tray
 A simple program to easily add, remove or change current DNS of the Windows.
 
 ## Please Pay Attention

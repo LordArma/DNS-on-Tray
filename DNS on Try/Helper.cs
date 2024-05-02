@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 
-namespace DNS_on_Try
+namespace DNS_on_Tray
 {
     public static class Helper
     {
