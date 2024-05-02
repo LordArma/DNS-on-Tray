@@ -58,7 +58,7 @@ namespace DNS_on_Tray
 
         public static void AddShieldToButton(Button b)
         {
-            b.FlatStyle = FlatStyle.System;
+            b.FlatStyle = FlatStyle.Flat;
             SendMessage(b.Handle, BCM_SETSHIELD, 0, 0xFFFFFFFF);
         }
 

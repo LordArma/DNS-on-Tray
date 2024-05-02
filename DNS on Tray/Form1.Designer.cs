@@ -48,6 +48,8 @@
             btnDNSSet = new Button();
             btnDNSRemove = new Button();
             optStartup = new CheckBox();
+            lblServers = new Label();
+            label1 = new Label();
             notifyMenu.SuspendLayout();
             SuspendLayout();
             // 
@@ -101,27 +103,35 @@
             // 
             // lstDNS
             // 
+            lstDNS.BackColor = Color.DimGray;
+            lstDNS.BorderStyle = BorderStyle.FixedSingle;
+            lstDNS.ForeColor = Color.Gainsboro;
             lstDNS.FormattingEnabled = true;
             lstDNS.ItemHeight = 15;
             lstDNS.Items.AddRange(new object[] { "Clear" });
-            lstDNS.Location = new Point(12, 134);
+            lstDNS.Location = new Point(12, 36);
             lstDNS.Name = "lstDNS";
             lstDNS.ScrollAlwaysVisible = true;
-            lstDNS.Size = new Size(237, 94);
+            lstDNS.Size = new Size(237, 122);
             lstDNS.TabIndex = 2;
             // 
             // txtDNSName
             // 
-            txtDNSName.Location = new Point(106, 18);
+            txtDNSName.BackColor = Color.Gainsboro;
+            txtDNSName.BorderStyle = BorderStyle.FixedSingle;
+            txtDNSName.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            txtDNSName.ForeColor = Color.DimGray;
+            txtDNSName.Location = new Point(93, 251);
             txtDNSName.Name = "txtDNSName";
-            txtDNSName.Size = new Size(143, 23);
+            txtDNSName.Size = new Size(156, 23);
             txtDNSName.TabIndex = 3;
             txtDNSName.TextChanged += txtDNSName_TextChanged;
             // 
             // lblDNSName
             // 
             lblDNSName.AutoSize = true;
-            lblDNSName.Location = new Point(12, 21);
+            lblDNSName.ForeColor = Color.Gainsboro;
+            lblDNSName.Location = new Point(12, 254);
             lblDNSName.Name = "lblDNSName";
             lblDNSName.Size = new Size(68, 15);
             lblDNSName.TabIndex = 4;
@@ -130,7 +140,8 @@
             // lblDNS1
             // 
             lblDNS1.AutoSize = true;
-            lblDNS1.Location = new Point(12, 50);
+            lblDNS1.ForeColor = Color.Gainsboro;
+            lblDNS1.Location = new Point(12, 283);
             lblDNS1.Name = "lblDNS1";
             lblDNS1.Size = new Size(42, 15);
             lblDNS1.TabIndex = 6;
@@ -138,16 +149,21 @@
             // 
             // txtDNS1
             // 
-            txtDNS1.Location = new Point(106, 47);
+            txtDNS1.BackColor = Color.Gainsboro;
+            txtDNS1.BorderStyle = BorderStyle.FixedSingle;
+            txtDNS1.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            txtDNS1.ForeColor = Color.DimGray;
+            txtDNS1.Location = new Point(93, 280);
             txtDNS1.Name = "txtDNS1";
-            txtDNS1.Size = new Size(143, 23);
+            txtDNS1.Size = new Size(156, 23);
             txtDNS1.TabIndex = 5;
             txtDNS1.TextChanged += txtDNS1_TextChanged;
             // 
             // lblDNS2
             // 
             lblDNS2.AutoSize = true;
-            lblDNS2.Location = new Point(12, 79);
+            lblDNS2.ForeColor = Color.Gainsboro;
+            lblDNS2.Location = new Point(12, 312);
             lblDNS2.Name = "lblDNS2";
             lblDNS2.Size = new Size(42, 15);
             lblDNS2.TabIndex = 8;
@@ -155,60 +171,98 @@
             // 
             // txtDNS2
             // 
-            txtDNS2.Location = new Point(106, 76);
+            txtDNS2.BackColor = Color.Gainsboro;
+            txtDNS2.BorderStyle = BorderStyle.FixedSingle;
+            txtDNS2.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            txtDNS2.ForeColor = Color.DimGray;
+            txtDNS2.Location = new Point(93, 309);
             txtDNS2.Name = "txtDNS2";
-            txtDNS2.Size = new Size(143, 23);
+            txtDNS2.Size = new Size(156, 23);
             txtDNS2.TabIndex = 7;
             txtDNS2.TextChanged += txtDNS2_TextChanged;
             // 
             // btnDNSAdd
             // 
+            btnDNSAdd.BackColor = Color.DimGray;
             btnDNSAdd.Enabled = false;
-            btnDNSAdd.Location = new Point(174, 105);
+            btnDNSAdd.FlatStyle = FlatStyle.Flat;
+            btnDNSAdd.ForeColor = Color.Gainsboro;
+            btnDNSAdd.Location = new Point(174, 338);
             btnDNSAdd.Name = "btnDNSAdd";
             btnDNSAdd.Size = new Size(75, 23);
             btnDNSAdd.TabIndex = 9;
             btnDNSAdd.Text = "Add";
-            btnDNSAdd.UseVisualStyleBackColor = true;
+            btnDNSAdd.UseVisualStyleBackColor = false;
             btnDNSAdd.Click += btnDNSAdd_Click;
             // 
             // btnDNSSet
             // 
-            btnDNSSet.Location = new Point(174, 234);
+            btnDNSSet.BackColor = Color.DimGray;
+            btnDNSSet.FlatStyle = FlatStyle.Flat;
+            btnDNSSet.ForeColor = Color.Gainsboro;
+            btnDNSSet.Location = new Point(174, 172);
             btnDNSSet.Name = "btnDNSSet";
             btnDNSSet.Size = new Size(75, 23);
             btnDNSSet.TabIndex = 10;
             btnDNSSet.Text = "Set";
-            btnDNSSet.UseVisualStyleBackColor = true;
+            btnDNSSet.UseVisualStyleBackColor = false;
             btnDNSSet.Click += btnDNSSet_Click;
             // 
             // btnDNSRemove
             // 
-            btnDNSRemove.Location = new Point(93, 234);
+            btnDNSRemove.BackColor = Color.DimGray;
+            btnDNSRemove.FlatStyle = FlatStyle.Flat;
+            btnDNSRemove.ForeColor = Color.Gainsboro;
+            btnDNSRemove.Location = new Point(93, 172);
             btnDNSRemove.Name = "btnDNSRemove";
             btnDNSRemove.Size = new Size(75, 23);
             btnDNSRemove.TabIndex = 12;
             btnDNSRemove.Text = "Remove";
-            btnDNSRemove.UseVisualStyleBackColor = true;
+            btnDNSRemove.UseVisualStyleBackColor = false;
             btnDNSRemove.Click += btnDNSRemove_Click;
             // 
             // optStartup
             // 
             optStartup.AutoSize = true;
+            optStartup.FlatStyle = FlatStyle.Flat;
+            optStartup.ForeColor = Color.Gainsboro;
             optStartup.Location = new Point(12, 371);
             optStartup.Name = "optStartup";
-            optStartup.Size = new Size(122, 19);
+            optStartup.Size = new Size(119, 19);
             optStartup.TabIndex = 13;
             optStartup.Text = "Launch on startup";
             optStartup.UseVisualStyleBackColor = true;
             optStartup.Click += optStartup_Click;
             // 
+            // lblServers
+            // 
+            lblServers.AutoSize = true;
+            lblServers.ForeColor = Color.Gainsboro;
+            lblServers.Location = new Point(12, 9);
+            lblServers.Name = "lblServers";
+            lblServers.Size = new Size(44, 15);
+            lblServers.TabIndex = 14;
+            lblServers.Text = "Servers";
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.ForeColor = Color.Gainsboro;
+            label1.Location = new Point(12, 222);
+            label1.Name = "label1";
+            label1.Size = new Size(132, 15);
+            label1.TabIndex = 15;
+            label1.Text = "Add a new custom DNS";
+            // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
+            BackColor = Color.DimGray;
             ClientSize = new Size(265, 402);
             ControlBox = false;
+            Controls.Add(label1);
+            Controls.Add(lblServers);
             Controls.Add(optStartup);
             Controls.Add(btnDNSRemove);
             Controls.Add(btnDNSSet);
@@ -220,6 +274,7 @@
             Controls.Add(lblDNSName);
             Controls.Add(txtDNSName);
             Controls.Add(lstDNS);
+            ForeColor = SystemColors.ControlLight;
             FormBorderStyle = FormBorderStyle.None;
             Icon = (Icon)resources.GetObject("$this.Icon");
             MinimizeBox = false;
@@ -228,9 +283,9 @@
             SizeGripStyle = SizeGripStyle.Hide;
             StartPosition = FormStartPosition.CenterScreen;
             Text = "DNS on Tray";
-            WindowState = FormWindowState.Minimized;
             Activated += frmMain_Activated;
             Load += frmMain_Load;
+            DoubleClick += frmMain_DoubleClick;
             notifyMenu.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
@@ -256,5 +311,7 @@
         private Button btnDNSSet;
         private Button btnDNSRemove;
         private CheckBox optStartup;
+        private Label lblServers;
+        private Label label1;
     }
 }

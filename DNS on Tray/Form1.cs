@@ -1,4 +1,5 @@
 using Microsoft.Win32;
+using System.Runtime.InteropServices;
 using static DNS_on_Tray.Helper;
 
 namespace DNS_on_Tray
@@ -18,14 +19,14 @@ namespace DNS_on_Tray
 
         private void ShowMainWindow()
         {
-            if (this.WindowState != FormWindowState.Normal)
+            if (this.Visible == false)
             {
-                this.WindowState = FormWindowState.Normal;
+                this.Visible = true;
                 this.ShowInTaskbar = true;
             }
             else
             {
-                this.WindowState = FormWindowState.Minimized;
+                this.Visible = false;
                 this.ShowInTaskbar = false;
             }
         }
@@ -35,9 +36,20 @@ namespace DNS_on_Tray
             ClearDNS();
         }
 
+        private void SetupFormStartPosition()
+        {
+            Rectangle workingArea = Screen.GetWorkingArea(this);
+            this.Location = new Point(workingArea.Right - Size.Width - 40,
+                                      workingArea.Bottom - Size.Height - 16);
+
+            this.Visible = false;
+        }
+
         private void frmMain_Load(object sender, EventArgs e)
         {
-            EnableAdd();
+            SetupFormStartPosition();
+
+            EnableAddButton();
 
             if (CanRunAsStartup())
             {
@@ -71,7 +83,7 @@ namespace DNS_on_Tray
             AddDNS(dns.DNS1(), dns.DNS2());
         }
 
-        private void EnableAdd()
+        private void EnableAddButton()
         {
             string strDNSName = txtDNSName.Text.Trim();
             string strDNS1 = txtDNS1.Text.Trim();
@@ -135,17 +147,17 @@ namespace DNS_on_Tray
 
         private void txtDNSName_TextChanged(object sender, EventArgs e)
         {
-            EnableAdd();
+            EnableAddButton();
         }
 
         private void txtDNS1_TextChanged(object sender, EventArgs e)
         {
-            EnableAdd();
+            EnableAddButton();
         }
 
         private void txtDNS2_TextChanged(object sender, EventArgs e)
         {
-            EnableAdd();
+            EnableAddButton();
         }
 
         private void btnExit_Click(object sender, EventArgs e)
@@ -161,7 +173,9 @@ namespace DNS_on_Tray
         private void frmMain_Activated(object sender, EventArgs e)
         {
             if (!IsAdministrator)
-                AddShieldToButton(this.btnDNSSet);
+            {
+                // AddShieldToButton(this.btnDNSSet);
+            }     
         }
 
         private void optStartup_Click(object sender, EventArgs e)
@@ -174,6 +188,11 @@ namespace DNS_on_Tray
             {
                 RunAsStartup(false);
             }
+        }
+
+        private void frmMain_DoubleClick(object sender, EventArgs e)
+        {
+            ShowMainWindow();
         }
     }
 }
