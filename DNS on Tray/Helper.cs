@@ -42,7 +42,7 @@ namespace DNS_on_Tray
 
         public static void AddDNS(string dns1, string dns2)
         {
-            RunCMDAsAdmin($"/C netsh interface ipv4 add dnsserver \"Wi-Fi\" address={dns1} index=1 & netsh interface ipv4 add dnsserver \"Wi-Fi\" address={dns2} index=2");
+            RunCMDAsAdmin($"wmic nicconfig where (IPEnabled=TRUE) call SetDNSServerSearchOrder (\"{dns1}\", \"{dns2}\")");
         }
 
         public static void ClearDNS()
