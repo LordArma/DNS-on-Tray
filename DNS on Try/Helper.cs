@@ -65,5 +65,52 @@ namespace DNS_on_Try
             b.FlatStyle = FlatStyle.System;
             SendMessage(b.Handle, BCM_SETSHIELD, 0, 0xFFFFFFFF);
         }
+
+        public static void AddPopularDNS()
+        {
+            DNS dns;
+
+            # pishgaman.net
+            nameserver 5.202.100.100
+            nameserver 5.202.100.101
+
+            # shatel.ir
+            nameserver 85.15.1.14
+            nameserver 85.15.1.15
+
+            # hostiran.net
+            nameserver 172.29.0.100
+            nameserver 172.29.2.100
+
+            dns = new DNS("Cloudflare", "1.1.1.1", "1.0.0.1");
+            dns.Save();
+
+            dns = new DNS("Google Public DNS", "8.8.8.8", "8.8.4.4");
+            dns.Save();
+
+            dns = new DNS("Shecan.ir", "178.22.122.100", "185.51.200.2");
+            dns.Save();
+
+            dns = new DNS("Electro", "78.157.42.100", "78.157.42.101");
+            dns.Save();
+
+            dns = new DNS("403.online", "10.202.10.202", "10.202.10.102");
+            dns.Save();
+
+            dns = new DNS("Begzar.ir", "185.55.226.26", "185.55.225.25");
+            dns.Save();
+
+            dns = new DNS("Radar.game", "10.202.10.10", "10.202.10.11");
+            dns.Save();
+
+            dns = new DNS("Pishgaman.net", "5.202.100.100", "5.202.100.101");
+            dns.Save();
+
+            dns = new DNS("Shatel.ir", "85.15.1.14", "85.15.1.15");
+            dns.Save();
+
+            dns = new DNS("Hostiran.net", "172.29.0.100", "172.29.2.100");
+            dns.Save();
+        }
     }
 }
