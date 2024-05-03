@@ -23,7 +23,7 @@ namespace DNS_on_Tray
             const int ERROR_CANCELLED = 1223;
 
             ProcessStartInfo info = new ProcessStartInfo(@"cmd.exe");
-            info.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+            info.WindowStyle = ProcessWindowStyle.Hidden;
             info.UseShellExecute = true;
             info.Verb = "runas";
             info.Arguments = args;
