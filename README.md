@@ -7,7 +7,9 @@ A simple program to easily add, remove or change current DNS of the Windows. Thi
 - This program is currently unsigned. You can download its codes or use unsigned releases.
 
 ## Screenshot
-![Screenshot of DNS on Try program on the system tray.](screenshot1.jpg "Screenshot of DNS on Try Program") ![Another screenshot of DNS on Try program on the system tray.](screenshot2.jpg "Another screenshot of DNS on Try Program")
+![Screenshot of DNS on Try program on the system tray.](screenshot1.jpg "Screenshot of DNS on Try Program")
+
+![Another screenshot of DNS on Try program on the system tray.](screenshot2.jpg "Another screenshot of DNS on Try Program")
 
 ## Supported DNS Servers by Default
 - Cloudflare
