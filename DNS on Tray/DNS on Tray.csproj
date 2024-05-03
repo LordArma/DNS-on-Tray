@@ -3,9 +3,12 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
-	<Version>0.5.0</Version>
+	<Version>0.6.0</Version>
     <RootNamespace>DNS_on_Tray</RootNamespace>
     <Nullable>enable</Nullable>
+	<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	<DebugType>embedded</DebugType>
+	<SelfContained>true</SelfContained>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>dns.ico</ApplicationIcon>
