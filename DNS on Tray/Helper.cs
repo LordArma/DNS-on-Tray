@@ -69,7 +69,7 @@ namespace DNS_on_Tray
             dns = new DNS("Cloudflare", "1.1.1.1", "1.0.0.1");
             dns.Save();
 
-            dns = new DNS("Google Public DNS", "8.8.8.8", "8.8.4.4");
+            dns = new DNS("Google (Public DNS)", "8.8.8.8", "8.8.4.4");
             dns.Save();
 
             dns = new DNS("Shecan.ir", "178.22.122.100", "185.51.200.2");
