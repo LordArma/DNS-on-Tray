@@ -60,7 +60,7 @@
             // notifyMenu
             // 
             notifyMenu.Name = "notifyMenu";
-            notifyMenu.Size = new Size(181, 26);
+            notifyMenu.Size = new Size(61, 4);
             // 
             // lstDNS
             // 

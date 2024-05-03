@@ -1,5 +1,6 @@
 using Microsoft.Win32;
 using System.Net;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using static DNS_on_Tray.Helper;
 
@@ -73,6 +74,7 @@ namespace DNS_on_Tray
             item = new ToolStripMenuItem();
             item.Name = strMenuItemName;
             item.Text = strMenuItemName;
+            item.Image = Resources.clear.ToBitmap();
             item.Click += new EventHandler(MenuItemClickHandler);
             notifyMenu.Items.Add(item);
 
@@ -82,6 +84,7 @@ namespace DNS_on_Tray
             item = new ToolStripMenuItem();
             item.Name = strMenuItemName;
             item.Text = strMenuItemName;
+            item.Image = Resources.dns.ToBitmap();
             item.Click += new EventHandler(MenuItemClickHandler);
             notifyMenu.Items.Add(item);
 
@@ -91,6 +94,7 @@ namespace DNS_on_Tray
             item = new ToolStripMenuItem();
             item.Name = strMenuItemName;
             item.Text = strMenuItemName;
+            item.Image = Resources.exit.ToBitmap();
             item.Click += new EventHandler(MenuItemClickHandler);
             notifyMenu.Items.Add(item);
         }
