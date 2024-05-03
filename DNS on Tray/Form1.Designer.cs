@@ -32,11 +32,6 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMain));
             notifyIcon1 = new NotifyIcon(components);
             notifyMenu = new ContextMenuStrip(components);
-            btnServers = new ToolStripMenuItem();
-            btnClear = new ToolStripMenuItem();
-            toolStripSeparator1 = new ToolStripSeparator();
-            btnSettings = new ToolStripMenuItem();
-            btnExit = new ToolStripMenuItem();
             lstDNS = new ListBox();
             txtDNSName = new TextBox();
             lblDNSName = new Label();
@@ -50,7 +45,6 @@
             optStartup = new CheckBox();
             lblServers = new Label();
             label1 = new Label();
-            notifyMenu.SuspendLayout();
             SuspendLayout();
             // 
             // notifyIcon1
@@ -65,41 +59,8 @@
             // 
             // notifyMenu
             // 
-            notifyMenu.Items.AddRange(new ToolStripItem[] { btnServers, btnClear, toolStripSeparator1, btnSettings, btnExit });
             notifyMenu.Name = "notifyMenu";
-            notifyMenu.Size = new Size(128, 98);
-            // 
-            // btnServers
-            // 
-            btnServers.Name = "btnServers";
-            btnServers.Size = new Size(127, 22);
-            btnServers.Text = "Servers";
-            // 
-            // btnClear
-            // 
-            btnClear.Name = "btnClear";
-            btnClear.Size = new Size(127, 22);
-            btnClear.Text = "Clear DNS";
-            btnClear.Click += btnClear_Click;
-            // 
-            // toolStripSeparator1
-            // 
-            toolStripSeparator1.Name = "toolStripSeparator1";
-            toolStripSeparator1.Size = new Size(124, 6);
-            // 
-            // btnSettings
-            // 
-            btnSettings.Name = "btnSettings";
-            btnSettings.Size = new Size(127, 22);
-            btnSettings.Text = "Settings";
-            btnSettings.Click += btnSettings_Click;
-            // 
-            // btnExit
-            // 
-            btnExit.Name = "btnExit";
-            btnExit.Size = new Size(127, 22);
-            btnExit.Text = "Exit";
-            btnExit.Click += btnExit_Click;
+            notifyMenu.Size = new Size(181, 26);
             // 
             // lstDNS
             // 
@@ -286,7 +247,6 @@
             Activated += frmMain_Activated;
             Load += frmMain_Load;
             DoubleClick += frmMain_DoubleClick;
-            notifyMenu.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -295,11 +255,6 @@
 
         private NotifyIcon notifyIcon1;
         private ContextMenuStrip notifyMenu;
-        private ToolStripMenuItem btnServers;
-        private ToolStripMenuItem btnClear;
-        private ToolStripMenuItem btnExit;
-        private ToolStripSeparator toolStripSeparator1;
-        private ToolStripMenuItem btnSettings;
         private ListBox lstDNS;
         private TextBox txtDNSName;
         private Label lblDNSName;

@@ -1,4 +1,5 @@
 using Microsoft.Win32;
+using System.Net;
 using System.Runtime.InteropServices;
 using static DNS_on_Tray.Helper;
 
@@ -33,11 +34,6 @@ namespace DNS_on_Tray
             }
         }
 
-        private void btnClear_Click(object sender, EventArgs e)
-        {
-            ClearDNS();
-        }
-
         private void SetupFormStartPosition()
         {
             Rectangle workingArea = Screen.GetWorkingArea(this);
@@ -45,6 +41,58 @@ namespace DNS_on_Tray
                                       workingArea.Bottom - Size.Height - 16);
 
             this.Opacity = 0;
+        }
+
+        private void MakeMenuItems()
+        {
+
+            notifyMenu.Items.Clear();
+            lstDNS.Items.Clear();
+
+            lstDNS.Items.Add("Clear");
+
+            ToolStripMenuItem item = new ToolStripMenuItem();
+
+            foreach (var dns in DNS.All())
+            {
+                lstDNS.Items.Add(dns.Name());
+
+                item = new ToolStripMenuItem();
+                item.Name = "dns" + Convert.ToString(new Random().Next(1, 99999));
+                item.Text = dns.Name();
+                item.Click += new EventHandler(MenuItemClickHandler);
+
+                notifyMenu.Items.Add(item);
+
+            }
+
+
+            notifyMenu.Items.Add("-");
+
+            string strMenuItemName = "Clear";
+            item = new ToolStripMenuItem();
+            item.Name = strMenuItemName;
+            item.Text = strMenuItemName;
+            item.Click += new EventHandler(MenuItemClickHandler);
+            notifyMenu.Items.Add(item);
+
+            notifyMenu.Items.Add("-");
+
+            strMenuItemName = "Settings";
+            item = new ToolStripMenuItem();
+            item.Name = strMenuItemName;
+            item.Text = strMenuItemName;
+            item.Click += new EventHandler(MenuItemClickHandler);
+            notifyMenu.Items.Add(item);
+
+            notifyMenu.Items.Add("-");
+
+            strMenuItemName = "Exit";
+            item = new ToolStripMenuItem();
+            item.Name = strMenuItemName;
+            item.Text = strMenuItemName;
+            item.Click += new EventHandler(MenuItemClickHandler);
+            notifyMenu.Items.Add(item);
         }
 
         private void frmMain_Load(object sender, EventArgs e)
@@ -62,27 +110,31 @@ namespace DNS_on_Tray
                 optStartup.Checked = false;
             }
 
-            foreach (var dns in DNS.All())
-            {
-                lstDNS.Items.Add(dns.Name());
-
-                ToolStripMenuItem item = new ToolStripMenuItem();
-                item = new ToolStripMenuItem();
-                item.Name = "dns" + Convert.ToString(new Random().Next(1, 99999));
-                item.Text = dns.Name();
-                item.Click += new EventHandler(MenuItemClickHandler);
-
-                btnServers.DropDownItems.Add(item);
-
-            }
+            MakeMenuItems();
         }
 
         private void MenuItemClickHandler(object sender, EventArgs e)
         {
             ToolStripMenuItem clickedItem = (ToolStripMenuItem)sender;
-            string dnsName = clickedItem.Text;
-            DNS dns = new DNS(dnsName);
-            AddDNS(dns.DNS1(), dns.DNS2());
+            string strItem = clickedItem.Text;
+            DNS dns = new DNS(strItem);
+
+            if (strItem != "Exit" & strItem != "Settings" & strItem != "Clear")
+            {
+                AddDNS(dns.DNS1(), dns.DNS2());
+            }
+            else if (strItem.ToString() == "Exit")
+            {
+                System.Windows.Forms.Application.Exit();
+            }
+            else if (strItem.ToString() == "Settings")
+            {
+                ShowMainWindow();
+            }
+            else if (strItem.ToString() == "Clear")
+            {
+                ClearDNS();
+            }
         }
 
         private void EnableAddButton()
@@ -109,6 +161,7 @@ namespace DNS_on_Tray
                 lstDNS.Items.Remove(strSlelectedItem);
                 DNS dns = new(strSlelectedItem);
                 dns.Remove();
+                MakeMenuItems();
             }
 
         }
@@ -145,6 +198,7 @@ namespace DNS_on_Tray
                 dns.Save();
 
             ClearForm();
+            MakeMenuItems();
         }
 
         private void txtDNSName_TextChanged(object sender, EventArgs e)
@@ -160,16 +214,6 @@ namespace DNS_on_Tray
         private void txtDNS2_TextChanged(object sender, EventArgs e)
         {
             EnableAddButton();
-        }
-
-        private void btnExit_Click(object sender, EventArgs e)
-        {
-            System.Windows.Forms.Application.Exit();
-        }
-
-        private void btnSettings_Click(object sender, EventArgs e)
-        {
-            ShowMainWindow();
         }
 
         private void frmMain_Activated(object sender, EventArgs e)
