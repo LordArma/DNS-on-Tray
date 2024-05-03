@@ -99,7 +99,9 @@ namespace DNS_on_Tray
 
         public static void RunAsStartup(bool agree=true)
         {
+            #pragma warning disable CS8600
             RegistryKey rkApp = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+            #pragma warning disable CS8602
             if (agree) {    
                 rkApp.SetValue("dnsontry", Application.ExecutablePath);
             }
@@ -107,10 +109,13 @@ namespace DNS_on_Tray
             {
                 rkApp.DeleteValue("dnsontry", false);
             }
+            #pragma warning restore CS8602
+            #pragma warning restore CS8600
         }
 
         public static bool CanRunAsStartup()
         {
+            #pragma warning disable CS8600
             using (RegistryKey key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"))
             {
                 if (key != null)
@@ -128,6 +133,7 @@ namespace DNS_on_Tray
                     return false;
                 }
             }
+            #pragma warning restore CS8600
         }
     }
 }
