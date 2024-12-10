@@ -42,6 +42,9 @@
             btnDNSAdd = new Button();
             btnDNSSet = new Button();
             btnDNSRemove = new Button();
+            btnDNSPing = new Button();
+            labelPing = new Label();
+            labelPingResult = new Label();
             optStartup = new CheckBox();
             lblServers = new Label();
             label1 = new Label();
@@ -163,7 +166,7 @@
             btnDNSSet.ForeColor = Color.Gainsboro;
             btnDNSSet.Location = new Point(174, 172);
             btnDNSSet.Name = "btnDNSSet";
-            btnDNSSet.Size = new Size(75, 23);
+            btnDNSSet.Size = new Size(75, 25);
             btnDNSSet.TabIndex = 10;
             btnDNSSet.Text = "Set";
             btnDNSSet.UseVisualStyleBackColor = false;
@@ -176,7 +179,7 @@
             btnDNSRemove.ForeColor = Color.Gainsboro;
             btnDNSRemove.Location = new Point(93, 172);
             btnDNSRemove.Name = "btnDNSRemove";
-            btnDNSRemove.Size = new Size(75, 23);
+            btnDNSRemove.Size = new Size(75, 25);
             btnDNSRemove.TabIndex = 12;
             btnDNSRemove.Text = "Remove";
             btnDNSRemove.UseVisualStyleBackColor = false;
@@ -215,6 +218,37 @@
             label1.TabIndex = 15;
             label1.Text = "Add a new custom DNS";
             // 
+            // btnDNSPing
+            // 
+            btnDNSPing.BackColor = Color.DimGray;
+            btnDNSPing.FlatStyle = FlatStyle.Flat;
+            btnDNSPing.ForeColor = Color.Gainsboro;
+            btnDNSPing.Location = new Point(10, 172);
+            btnDNSPing.Name = "btnDNSPing";
+            btnDNSPing.Size = new Size(75, 25);
+            btnDNSPing.TabIndex = 16;
+            btnDNSPing.Text = "Ping";
+            btnDNSPing.UseVisualStyleBackColor = false;
+            btnDNSPing.Click += btnDNSPing_Click;
+            // 
+            // labelPing
+            // 
+            labelPing.AutoSize = true;
+            labelPing.ForeColor = Color.Gainsboro;
+            labelPing.Location = new Point(12, 206);
+            labelPing.Name = "labelPing";
+            labelPing.Size = new Size(50, 15);
+            labelPing.TabIndex = 17;
+            labelPing.Text = "DNS Health Check: ";
+            // 
+            // labelPingResult
+            // 
+            labelPingResult.AutoSize = true;
+            labelPingResult.Location = new Point(130, 206);
+            labelPingResult.Name = "labelPingResult";
+            labelPingResult.Size = new Size(132, 15);
+            labelPingResult.TabIndex = 18;
+            // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -226,6 +260,9 @@
             Controls.Add(lblServers);
             Controls.Add(optStartup);
             Controls.Add(btnDNSRemove);
+            Controls.Add(btnDNSPing);
+            Controls.Add(labelPing);
+            Controls.Add(labelPingResult);
             Controls.Add(btnDNSSet);
             Controls.Add(btnDNSAdd);
             Controls.Add(lblDNS2);
@@ -265,6 +302,9 @@
         private Button btnDNSAdd;
         private Button btnDNSSet;
         private Button btnDNSRemove;
+        private Button btnDNSPing;
+        private Label labelPing;
+        private Label labelPingResult;
         private CheckBox optStartup;
         private Label lblServers;
         private Label label1;

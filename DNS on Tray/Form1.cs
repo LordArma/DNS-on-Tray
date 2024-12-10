@@ -157,6 +157,33 @@ namespace DNS_on_Tray
             }
         }
 
+        private void btnDNSPing_Click(object sender, EventArgs e)
+        {
+            string strSlelectedItem = Convert.ToString(lstDNS.SelectedItem) + "";
+            if (strSlelectedItem == "Clear")
+            {
+                ClearDNS();
+            }
+            else
+            {
+                string dnsName = strSlelectedItem;
+                DNS dns = new DNS(dnsName);
+                var pingResult = PingDNS(dns.DNS1(), dns.DNS2());
+
+                if (pingResult)
+                {
+                    labelPingResult.Text = "Success";
+                    labelPingResult.ForeColor = Color.LightGreen;
+                }
+                else
+                {
+                    labelPingResult.Text = "Failed";
+                    labelPingResult.ForeColor = Color.Red;
+                }
+            }
+
+        }
+
         private void btnDNSRemove_Click(object sender, EventArgs e)
         {
             string strSlelectedItem = Convert.ToString(lstDNS.SelectedItem) + "";
@@ -225,7 +252,7 @@ namespace DNS_on_Tray
             if (!IsAdministrator)
             {
                 // AddShieldToButton(this.btnDNSSet);
-            }     
+            }
         }
 
         private void optStartup_Click(object sender, EventArgs e)

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Win32;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 
@@ -43,6 +44,26 @@ namespace DNS_on_Tray
         public static void AddDNS(string dns1, string dns2)
         {
             RunCMDAsAdmin($"/C wmic nicconfig where (IPEnabled=TRUE) call SetDNSServerSearchOrder (\"{dns1}\", \"{dns2}\")");
+        }
+
+        public static bool PingDNS(string dns1, string dns2)
+        {
+            var firstPing = SendPing(dns1);
+            var secondPing = SendPing(dns2);
+
+            return (firstPing && secondPing);
+        }
+
+        private static bool SendPing(string dns1)
+        {
+            var ping = new Ping();
+            var reply = ping.Send(dns1, 4000);
+
+            if (reply != null && reply.Status == IPStatus.Success)
+            {
+                return true;
+            }
+            return false;
         }
 
         public static void ClearDNS()
@@ -99,9 +120,9 @@ namespace DNS_on_Tray
 
         public static void RunAsStartup(bool agree=true)
         {
-            #pragma warning disable CS8600
+#pragma warning disable CS8600
             RegistryKey rkApp = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
-            #pragma warning disable CS8602
+#pragma warning disable CS8602
             if (agree) {    
                 rkApp.SetValue("dnsontry", Application.ExecutablePath);
             }
@@ -109,13 +130,13 @@ namespace DNS_on_Tray
             {
                 rkApp.DeleteValue("dnsontry", false);
             }
-            #pragma warning restore CS8602
-            #pragma warning restore CS8600
+#pragma warning restore CS8602
+#pragma warning restore CS8600
         }
 
         public static bool CanRunAsStartup()
         {
-            #pragma warning disable CS8600
+#pragma warning disable CS8600
             using (RegistryKey key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"))
             {
                 if (key != null)
@@ -133,7 +154,7 @@ namespace DNS_on_Tray
                     return false;
                 }
             }
-            #pragma warning restore CS8600
+#pragma warning restore CS8600
         }
     }
 }
