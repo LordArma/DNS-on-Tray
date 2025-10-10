@@ -72,6 +72,9 @@ namespace DNS_on_Tray
             dns = new DNS("Google (Public DNS)", "8.8.8.8", "8.8.4.4");
             dns.Save();
 
+            dns = new DNS("OpenDNS", "208.67.220.220", "208.67.222.222");
+            dns.Save();
+
             dns = new DNS("Shecan.ir", "178.22.122.100", "185.51.200.2");
             dns.Save();
 
