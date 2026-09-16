@@ -1,5 +1,6 @@
 using Microsoft.Win32;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using static DNS_on_Tray.Helper;
@@ -9,6 +10,8 @@ namespace DNS_on_Tray
 
     public partial class frmMain : Form
     {
+        private CancellationTokenSource? pingCancellationTokenSource;
+
         public frmMain()
         {
             InitializeComponent();
@@ -157,31 +160,87 @@ namespace DNS_on_Tray
             }
         }
 
-        private void btnDNSPing_Click(object sender, EventArgs e)
+        private async void btnDNSPing_Click(object sender, EventArgs e)
         {
-            string strSlelectedItem = Convert.ToString(lstDNS.SelectedItem) + "";
-            if (strSlelectedItem == "Clear")
+            // Cancel previous ping
+            pingCancellationTokenSource?.Cancel();
+            pingCancellationTokenSource?.Dispose();
+
+            pingCancellationTokenSource = new CancellationTokenSource();
+            var cancellationToken = pingCancellationTokenSource.Token;
+
+            string selectedItem = Convert.ToString(lstDNS.SelectedItem) ?? string.Empty;
+
+            if (selectedItem == "Clear")
             {
                 ClearDNS();
+                return;
             }
-            else
-            {
-                string dnsName = strSlelectedItem;
-                DNS dns = new DNS(dnsName);
-                var pingResult = PingDNS(dns.DNS1(), dns.DNS2());
 
-                if (pingResult)
+            labelPingResult.Text = $"Testing {selectedItem}...";
+            labelPingResult.ForeColor = Color.LightBlue;
+
+            try
+            {
+                var dns = new DNS(selectedItem);
+
+                var result = await PingDNS(
+                    dns.DNS1(),
+                    dns.DNS2(),
+                    cancellationToken);
+
+                if (cancellationToken.IsCancellationRequested)
+                    return;
+
+                if (result.Success)
                 {
-                    labelPingResult.Text = "Success";
+                    labelPingResult.Text =
+                        $"{selectedItem} - DNS1: {result.Dns1!.RoundtripTime} ms, " +
+                        $"DNS2: {result.Dns2!.RoundtripTime} ms";
+
                     labelPingResult.ForeColor = Color.LightGreen;
                 }
                 else
                 {
-                    labelPingResult.Text = "Failed";
+                    labelPingResult.Text = $"{selectedItem} failed";
                     labelPingResult.ForeColor = Color.Red;
                 }
             }
+            catch (OperationCanceledException)
+            {
+                // Previous ping was cancelled.
+            }
+        }
 
+        private async Task<DnsPingResult> PingDNS(string dns1, string dns2, CancellationToken cancellationToken)
+        {
+            var firstTask = SendPing(dns1, cancellationToken);
+            var secondTask = SendPing(dns2, cancellationToken);
+
+            var results = await Task.WhenAll(firstTask, secondTask);
+            return new DnsPingResult(results[0], results[1]);
+        }
+
+        private async Task<PingReply?> SendPing(string dns1, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(dns1))
+                return null!;
+
+            try
+            {
+                using var ping = new Ping();
+
+                var reply = await ping.SendPingAsync(dns1, TimeSpan.FromSeconds(4), cancellationToken: cancellationToken);
+                return reply;
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception)
+            {
+                return null!;
+            }
         }
 
         private void btnDNSRemove_Click(object sender, EventArgs e)
