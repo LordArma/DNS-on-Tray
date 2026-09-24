@@ -46,26 +46,6 @@ namespace DNS_on_Tray
             RunCMDAsAdmin($"/C wmic nicconfig where (IPEnabled=TRUE) call SetDNSServerSearchOrder (\"{dns1}\", \"{dns2}\")");
         }
 
-        public static bool PingDNS(string dns1, string dns2)
-        {
-            var firstPing = SendPing(dns1);
-            var secondPing = SendPing(dns2);
-
-            return (firstPing && secondPing);
-        }
-
-        private static bool SendPing(string dns1)
-        {
-            var ping = new Ping();
-            var reply = ping.Send(dns1, 4000);
-
-            if (reply != null && reply.Status == IPStatus.Success)
-            {
-                return true;
-            }
-            return false;
-        }
-
         public static void ClearDNS()
         {
             RunCMDAsAdmin("/C wmic nicconfig where (IPEnabled=TRUE) call SetDNSServerSearchOrder ()");
