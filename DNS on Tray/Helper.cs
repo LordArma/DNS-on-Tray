@@ -121,6 +121,15 @@ namespace DNS_on_Tray
             set => SetSetting("Adapter", value);
         }
 
+        /// <summary>
+        /// "en" or "fa", or null to follow the Windows display language.
+        /// </summary>
+        public static string? LanguageSetting
+        {
+            get => GetSetting("Language");
+            set => SetSetting("Language", value);
+        }
+
         #endregion
 
         #region Adapters

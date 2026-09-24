@@ -24,9 +24,9 @@ namespace DNS_on_Tray
 
             public override string ToString()
             {
-                string text = (IsCurrent ? "✓ " : "    ") + (Dns == null ? "Clear (automatic / DHCP)" : Name);
+                string text = (IsCurrent ? "✓ " : "    ") + (Dns == null ? L.ClearEntry : L.Ltr(Name));
                 if (Tested)
-                    text += Latency is int ms ? $"  —  {ms} ms" : "  —  no answer";
+                    text += "  —  " + (Latency is int ms ? L.Milliseconds(ms) : L.NoAnswer);
 
                 return text;
             }
@@ -224,9 +224,7 @@ namespace DNS_on_Tray
         {
             SetupFormStartPosition();
 
-            if (!SupportsDoH)
-                txtDoH.PlaceholderText = "needs Windows 11 (saved, not used)";
-
+            ApplyLanguage();
             EnableAddButton();
 
             optAdmin.Checked = ElevatedTaskExists();
@@ -239,8 +237,7 @@ namespace DNS_on_Tray
             }
             catch (Exception ex) when (ex is Microsoft.Data.Sqlite.SqliteException or IOException or UnauthorizedAccessException)
             {
-                MessageBox.Show($"Could not load the saved DNS list:\n{ex.Message}", "DNS on Tray",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowMessage(L.LoadFailed(ex.Message), MessageBoxIcon.Error);
             }
         }
 
@@ -272,7 +269,7 @@ namespace DNS_on_Tray
             foreach (var dns in all)
             {
                 item = new ToolStripMenuItem();
-                item.Text = dns.Name();
+                item.Text = L.Ltr(dns.Name());
                 item.Tag = dns;
                 item.Checked = IsCurrent(dns);
                 item.Click += new EventHandler(DnsMenuItem_Click);
@@ -308,7 +305,7 @@ namespace DNS_on_Tray
             string strMenuItemName = "Clear";
             item = new ToolStripMenuItem();
             item.Name = strMenuItemName;
-            item.Text = strMenuItemName;
+            item.Text = L.Clear;
             item.Checked = automatic;
             item.Image = Resources.clear.ToBitmap();
             item.Click += new EventHandler(ClearMenuItem_Click);
@@ -316,10 +313,12 @@ namespace DNS_on_Tray
 
             notifyMenu.Items.Add("-");
 
+            notifyMenu.Items.Add(LanguageMenu());
+
             strMenuItemName = "Settings";
             item = new ToolStripMenuItem();
             item.Name = strMenuItemName;
-            item.Text = strMenuItemName;
+            item.Text = L.Settings;
             item.Image = Resources.dns.ToBitmap();
             if (hotkeyRegistered)
                 item.ShortcutKeyDisplayString = "Ctrl+Alt+D";
@@ -331,7 +330,7 @@ namespace DNS_on_Tray
             strMenuItemName = "Exit";
             item = new ToolStripMenuItem();
             item.Name = strMenuItemName;
-            item.Text = strMenuItemName;
+            item.Text = L.Exit;
             item.Image = Resources.exit.ToBitmap();
             item.Click += new EventHandler(ExitMenuItem_Click);
             notifyMenu.Items.Add(item);
@@ -374,6 +373,84 @@ namespace DNS_on_Tray
 
         #endregion
 
+        #region Language
+
+        /// <summary>
+        /// Sets every visible text for the current language and mirrors the layout for Farsi.
+        /// </summary>
+        private void ApplyLanguage()
+        {
+            RightToLeft direction = L.IsRtl ? RightToLeft.Yes : RightToLeft.No;
+            this.RightToLeft = direction;
+            this.RightToLeftLayout = L.IsRtl;
+            notifyMenu.RightToLeft = direction;
+
+            // Addresses and URLs always read left to right.
+            foreach (TextBox box in new[] { txtDNS1, txtDNS2, txtDNS1v6, txtDNS2v6, txtDoH })
+                box.RightToLeft = RightToLeft.No;
+
+            lblServers.Text = L.Servers;
+            lblAdapter.Text = L.Adapter;
+            btnDNSPing.Text = L.Test;
+            btnDNSTestAll.Text = L.TestAll;
+            btnDNSEdit.Text = L.Edit;
+            btnDNSRemove.Text = L.Remove;
+            btnDNSSet.Text = L.Set;
+            labelPing.Text = L.HealthCheck;
+            labelPingResult.Text = "";
+            lblDNSName.Text = L.DnsName;
+            lblDoH.Text = L.DoHUrl;
+            lblDNS1.Text = L.FieldLabel("IPv4 1");
+            lblDNS2.Text = L.FieldLabel("IPv4 2");
+            lblDNS1v6.Text = L.FieldLabel("IPv6 1");
+            lblDNS2v6.Text = L.FieldLabel("IPv6 2");
+            txtDNS2.PlaceholderText = L.Optional;
+            txtDNS1v6.PlaceholderText = L.Optional;
+            txtDNS2v6.PlaceholderText = L.Optional;
+            txtDoH.PlaceholderText = SupportsDoH ? L.OptionalDoH : L.DoHNeedsWindows11;
+            btnImport.Text = L.Import;
+            btnExport.Text = L.Export;
+            btnDNSCancel.Text = L.Cancel;
+            optStartup.Text = L.LaunchOnStartup;
+            optAdmin.Text = L.RunAsAdmin;
+
+            if (editingName != null)
+            {
+                label1.Text = L.EditEntry(editingName);
+                btnDNSAdd.Text = L.Save;
+            }
+            else
+            {
+                label1.Text = L.AddNew;
+                btnDNSAdd.Text = L.Add;
+            }
+        }
+
+        private ToolStripMenuItem LanguageMenu()
+        {
+            ToolStripMenuItem menu = new ToolStripMenuItem(L.Language);
+
+            foreach (var (code, text) in new[] { (L.Auto, L.LanguageAuto), (L.English, "English"), (L.Farsi, "فارسی") })
+            {
+                ToolStripMenuItem item = new ToolStripMenuItem(text);
+                item.Checked = L.Setting == code;
+                item.Click += (_, _) => SetLanguage(code);
+                menu.DropDownItems.Add(item);
+            }
+
+            return menu;
+        }
+
+        private void SetLanguage(string code)
+        {
+            L.Setting = code;
+            ApplyLanguage();
+            LoadAdapters();
+            RefreshCurrentDNS();
+        }
+
+        #endregion
+
         #region Current DNS and adapters
 
         private void RefreshCurrentDNSFromAnyThread()
@@ -398,23 +475,23 @@ namespace DNS_on_Tray
             string description;
             if (currentDns == null)
             {
-                description = SelectedAdapterId != null ? "selected adapter is not connected" : "no connected adapter";
+                description = SelectedAdapterId != null ? L.SelectedAdapterNotConnected : L.NoConnectedAdapter;
             }
             else if (currentDns.Automatic)
             {
-                description = "Automatic (DHCP)";
+                description = L.AutomaticDhcp;
                 if (currentDns.Servers.Count > 0)
-                    description += " — " + string.Join(", ", currentDns.Servers);
+                    description += " — " + L.Ltr(string.Join(", ", currentDns.Servers.Take(2)));
             }
             else
             {
                 DNS? match = DNS.All().FirstOrDefault(IsCurrent);
                 description = match != null
-                    ? $"{match.Name()} ({match.ServersText()})"
-                    : string.Join(", ", currentDns.Servers);
+                    ? $"{L.Ltr(match.Name())} ({L.Ltr(match.ServersText())})"
+                    : L.Ltr(string.Join(", ", currentDns.Servers.Take(2)));
             }
 
-            lblCurrent.Text = $"Current DNS: {description}";
+            lblCurrent.Text = L.CurrentDns(description);
 
             bool custom = currentDns != null && !currentDns.Automatic;
             notifyIcon1.Icon = custom ? customIcon : automaticIcon;
@@ -429,13 +506,13 @@ namespace DNS_on_Tray
             string? selectedId = SelectedAdapterId;
 
             cboAdapter.Items.Clear();
-            cboAdapter.Items.Add(new AdapterItem(null, "Automatic (connected adapters)"));
+            cboAdapter.Items.Add(new AdapterItem(null, L.AutomaticAdapters));
             cboAdapter.SelectedIndex = 0;
 
             bool found = false;
             foreach (Adapter adapter in ListAdapters())
             {
-                var adapterItem = new AdapterItem(adapter.Id, adapter.IsUp ? adapter.Name : $"{adapter.Name} (disconnected)");
+                var adapterItem = new AdapterItem(adapter.Id, adapter.IsUp ? L.Ltr(adapter.Name) : L.Disconnected(adapter.Name));
                 cboAdapter.Items.Add(adapterItem);
 
                 if (adapter.Id == selectedId)
@@ -447,7 +524,7 @@ namespace DNS_on_Tray
 
             if (selectedId != null && !found)
             {
-                var missing = new AdapterItem(selectedId, "Saved adapter (not available)");
+                var missing = new AdapterItem(selectedId, L.SavedAdapterMissing);
                 cboAdapter.Items.Add(missing);
                 cboAdapter.SelectedItem = missing;
             }
@@ -474,20 +551,26 @@ namespace DNS_on_Tray
         private async Task ApplyDNS(DNS dns)
         {
             DnsChangeResult result = await AddDNS(dns);
-            ReportResult(result, $"DNS set to {dns.Name()} ({dns.ServersText()}).");
+            ReportResult(result, L.DnsSet(dns.Name(), dns.ServersText()));
             RefreshCurrentDNS();
         }
 
         private async Task ApplyClear()
         {
             DnsChangeResult result = await ClearDNS();
-            ReportResult(result, "DNS reset to automatic (DHCP).");
+            ReportResult(result, L.DnsReset);
             RefreshCurrentDNS();
         }
 
         private void ShowBalloon(string text, ToolTipIcon icon)
         {
             notifyIcon1.ShowBalloonTip(3000, "DNS on Tray", text, icon);
+        }
+
+        private void ShowMessage(string text, MessageBoxIcon icon)
+        {
+            MessageBoxOptions options = L.IsRtl ? MessageBoxOptions.RtlReading | MessageBoxOptions.RightAlign : 0;
+            MessageBox.Show(this, text, "DNS on Tray", MessageBoxButtons.OK, icon, MessageBoxDefaultButton.Button1, options);
         }
 
         private void ReportResult(DnsChangeResult result, string successMessage)
@@ -498,18 +581,16 @@ namespace DNS_on_Tray
                     ShowBalloon(successMessage, ToolTipIcon.Info);
                     break;
                 case DnsChangeResult.Cancelled:
-                    ShowBalloon("DNS was not changed: administrator permission was declined.", ToolTipIcon.Warning);
+                    ShowBalloon(L.PermissionDeclined, ToolTipIcon.Warning);
                     break;
                 case DnsChangeResult.NoAdapter:
-                    ShowBalloon(SelectedAdapterId != null
-                        ? "DNS was not changed: the selected adapter is not connected."
-                        : "DNS was not changed: no connected network adapter was found.", ToolTipIcon.Warning);
+                    ShowBalloon(SelectedAdapterId != null ? L.SelectedAdapterNotConnectedError : L.NoAdapterError, ToolTipIcon.Warning);
                     break;
                 case DnsChangeResult.InvalidAddress:
-                    ShowBalloon("DNS was not changed: the saved addresses are not valid IPv4 addresses.", ToolTipIcon.Error);
+                    ShowBalloon(L.InvalidAddressError, ToolTipIcon.Error);
                     break;
                 default:
-                    ShowBalloon("Failed to change DNS.", ToolTipIcon.Error);
+                    ShowBalloon(L.ChangeFailed, ToolTipIcon.Error);
                     break;
             }
         }
@@ -552,7 +633,7 @@ namespace DNS_on_Tray
             if (!await intercepted)
                 return false;
 
-            labelPingResult.Text = "Can't test: a VPN or proxy is answering all DNS queries.";
+            labelPingResult.Text = L.Intercepted;
             labelPingResult.ForeColor = Color.Khaki;
             return true;
         }
@@ -564,14 +645,14 @@ namespace DNS_on_Tray
             DNS? dns = SelectedDNS();
             if (dns == null)
             {
-                labelPingResult.Text = "Select a server to test.";
+                labelPingResult.Text = L.SelectServerToTest;
                 labelPingResult.ForeColor = Color.Gainsboro;
                 return;
             }
 
             string selectedItem = dns.Name();
 
-            labelPingResult.Text = $"Testing {selectedItem}...";
+            labelPingResult.Text = L.Testing(selectedItem);
             labelPingResult.ForeColor = Color.LightBlue;
 
             try
@@ -589,8 +670,8 @@ namespace DNS_on_Tray
                 List<string> names = dns.IPv4Servers().Select((_, i) => $"DNS{i + 1}")
                     .Concat(dns.IPv6Servers().Select((_, i) => $"IPv6 {i + 1}")).ToList();
                 IEnumerable<string> parts = result.Select((ms, i) =>
-                    $"{names[i]}: " + (ms is int value ? $"{value} ms" : "no answer"));
-                labelPingResult.Text = $"{selectedItem} - {string.Join(", ", parts)}";
+                    $"{names[i]}: " + (ms is int value ? L.Milliseconds(value) : L.NoAnswer));
+                labelPingResult.Text = L.Ltr($"{selectedItem} - {string.Join(", ", parts)}");
 
                 int answered = result.Count(ms => ms.HasValue);
                 labelPingResult.ForeColor = answered == result.Length ? Color.LightGreen
@@ -611,7 +692,7 @@ namespace DNS_on_Tray
             var cancellationToken = StartTest();
 
             List<DNS> all = DNS.All();
-            labelPingResult.Text = $"Testing {all.Count} servers...";
+            labelPingResult.Text = L.TestingCount(all.Count);
             labelPingResult.ForeColor = Color.LightBlue;
 
             try
@@ -636,12 +717,12 @@ namespace DNS_on_Tray
                 var answered = results.Where(r => r.Latency.HasValue).OrderBy(r => r.Latency).ToList();
                 if (answered.Count > 0)
                 {
-                    labelPingResult.Text = $"Fastest: {answered[0].Dns.Name()} ({answered[0].Latency} ms), {answered.Count}/{all.Count} answered";
+                    labelPingResult.Text = L.Fastest(answered[0].Dns.Name(), answered[0].Latency!.Value, answered.Count, all.Count);
                     labelPingResult.ForeColor = Color.LightGreen;
                 }
                 else
                 {
-                    labelPingResult.Text = "No server answered.";
+                    labelPingResult.Text = L.NoServerAnswered;
                     labelPingResult.ForeColor = Color.LightCoral;
                 }
             }
@@ -695,8 +776,8 @@ namespace DNS_on_Tray
             txtDNS2v6.Text = dns.DNS2v6();
             txtDoH.Text = dns.DoH();
 
-            label1.Text = $"Edit \"{dns.Name()}\"";
-            btnDNSAdd.Text = "Save";
+            label1.Text = L.EditEntry(dns.Name());
+            btnDNSAdd.Text = L.Save;
             btnDNSCancel.Visible = true;
 
             EnableAddButton();
@@ -707,8 +788,8 @@ namespace DNS_on_Tray
         {
             editingName = null;
 
-            label1.Text = "Add a new custom DNS";
-            btnDNSAdd.Text = "Add";
+            label1.Text = L.AddNew;
+            btnDNSAdd.Text = L.Add;
             btnDNSCancel.Visible = false;
 
             ClearForm();
@@ -802,8 +883,8 @@ namespace DNS_on_Tray
         private void btnImport_Click(object? sender, EventArgs e)
         {
             using OpenFileDialog dialog = new OpenFileDialog();
-            dialog.Filter = "DNS on Tray list (*.json)|*.json|All files (*.*)|*.*";
-            dialog.Title = "Import DNS servers";
+            dialog.Filter = L.FileFilter;
+            dialog.Title = L.ImportTitle;
 
             suppressAutoHide = true;
             try
@@ -814,14 +895,14 @@ namespace DNS_on_Tray
                 var (added, skipped) = ServerListFile.Import(dialog.FileName);
                 RefreshCurrentDNS();
 
-                string message = $"Imported {added} server(s).";
+                string message = L.Imported(added);
                 if (skipped > 0)
-                    message += $" Skipped {skipped} (name already used or invalid addresses).";
-                MessageBox.Show(this, message, "DNS on Tray", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    message += " " + L.Skipped(skipped);
+                ShowMessage(message, MessageBoxIcon.Information);
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
             {
-                MessageBox.Show(this, $"Could not import the file:\n{ex.Message}", "DNS on Tray", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowMessage(L.ImportFailed(ex.Message), MessageBoxIcon.Error);
             }
             finally
             {
@@ -832,9 +913,9 @@ namespace DNS_on_Tray
         private void btnExport_Click(object? sender, EventArgs e)
         {
             using SaveFileDialog dialog = new SaveFileDialog();
-            dialog.Filter = "DNS on Tray list (*.json)|*.json";
+            dialog.Filter = L.ExportFilter;
             dialog.FileName = "dns-servers.json";
-            dialog.Title = "Export DNS servers";
+            dialog.Title = L.ExportTitle;
 
             suppressAutoHide = true;
             try
@@ -843,11 +924,11 @@ namespace DNS_on_Tray
                     return;
 
                 int count = ServerListFile.Export(dialog.FileName);
-                MessageBox.Show(this, $"Exported {count} server(s).", "DNS on Tray", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ShowMessage(L.Exported(count), MessageBoxIcon.Information);
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
-                MessageBox.Show(this, $"Could not export the file:\n{ex.Message}", "DNS on Tray", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowMessage(L.ExportFailed(ex.Message), MessageBoxIcon.Error);
             }
             finally
             {
@@ -875,7 +956,7 @@ namespace DNS_on_Tray
                 if (await Task.Run(() => RegisterElevatedTask(atLogon)) != DnsChangeResult.Success)
                 {
                     optStartup.Checked = !atLogon;
-                    ShowBalloon("Could not update the startup setting.", ToolTipIcon.Error);
+                    ShowBalloon(L.StartupUpdateFailed, ToolTipIcon.Error);
                 }
             }
             finally
@@ -906,7 +987,7 @@ namespace DNS_on_Tray
             if (await Task.Run(() => RegisterElevatedTask(atLogon)) != DnsChangeResult.Success)
             {
                 optAdmin.Checked = false;
-                ShowBalloon("Administrator mode was not turned on.", ToolTipIcon.Warning);
+                ShowBalloon(L.AdminNotOn, ToolTipIcon.Warning);
                 return;
             }
 
@@ -930,14 +1011,14 @@ namespace DNS_on_Tray
             if (await Task.Run(UnregisterElevatedTask) != DnsChangeResult.Success)
             {
                 optAdmin.Checked = true;
-                ShowBalloon("Administrator mode was not turned off.", ToolTipIcon.Warning);
+                ShowBalloon(L.AdminNotOff, ToolTipIcon.Warning);
                 return;
             }
 
             if (optStartup.Checked)
                 RunAsStartup(true);
 
-            ShowBalloon("Administrator mode is off. Windows will ask for permission on each DNS change after the app restarts.", ToolTipIcon.Info);
+            ShowBalloon(L.AdminOff, ToolTipIcon.Info);
         }
 
         #endregion
