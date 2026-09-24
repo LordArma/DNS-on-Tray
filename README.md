@@ -2,9 +2,18 @@
 A simple program to easily add, remove or change the DNS of Windows. Pick a DNS server from the system tray with one click, see which one is active, and test which one is fastest.
 
 ## Screenshots
-![The DNS on Tray settings window.](screenshot1.png "Settings window")
+<table>
+  <tr>
+    <th>English</th>
+    <th>Farsi</th>
+  </tr>
+  <tr>
+    <td><img src="screenshot1.png" alt="The DNS on Tray settings window in English." title="Settings window (English)"></td>
+    <td><img src="screenshot3.png" alt="The DNS on Tray settings window in Farsi." title="Settings window (Farsi)"></td>
+  </tr>
+</table>
+
 ![The DNS on Tray menu in the system tray.](screenshot2.png "Tray menu")
-![The settings window in Farsi.](screenshot3.png "Farsi UI")
 
 ## Features
 - **One-click switching** from the tray menu. A left click on the tray icon (or **Ctrl+Alt+D**) opens the settings window.
