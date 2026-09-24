@@ -52,6 +52,10 @@ namespace DNS_on_Tray
         private DateTime lastAutoHide = DateTime.MinValue;
         private bool suppressAutoHide;
 
+        // The window stays hidden until the user first opens it; see SetVisibleCore.
+        private bool initialized;
+        private bool allowShow;
+
         // Global hotkey (Ctrl+Alt+D) that shows or hides the window.
         private const int HotkeyId = 1;
         private const int WM_HOTKEY = 0x0312;
@@ -137,39 +141,56 @@ namespace DNS_on_Tray
         [DllImport("user32.dll")]
         private static extern bool DestroyIcon(IntPtr hIcon);
 
+        /// <summary>
+        /// Keeps the window hidden until the user asks for it. Application.Run makes the form
+        /// visible at startup; this blocks that, but still creates the handle (needed for the
+        /// hotkey and for BeginInvoke) and runs the one-time setup.
+        /// </summary>
+        protected override void SetVisibleCore(bool value)
+        {
+            if (!initialized)
+            {
+                initialized = true;
+                CreateHandle();
+                InitializeState();
+            }
+
+            base.SetVisibleCore(value && allowShow);
+        }
+
         public void ShowMainWindow()
         {
             LoadAdapters();
             RefreshCurrentDNS();
+            SetupFormStartPosition();
 
+            allowShow = true;
             this.Visible = true;
-            this.Opacity = 1;
-            this.ShowInTaskbar = true;
             this.Activate();
         }
 
         private void HideMainWindow()
         {
             this.Visible = false;
-            this.Opacity = 0;
-            this.ShowInTaskbar = false;
         }
 
         private void ToggleMainWindow()
         {
-            if (this.Opacity == 0)
-                ShowMainWindow();
-            else
+            if (this.Visible)
                 HideMainWindow();
+            else
+                ShowMainWindow();
         }
 
+        /// <summary>
+        /// Places the window above the tray, on the screen it is on (recomputed on every show
+        /// so resolution or monitor changes are picked up).
+        /// </summary>
         private void SetupFormStartPosition()
         {
             Rectangle workingArea = Screen.GetWorkingArea(this);
             this.Location = new Point(workingArea.Right - Size.Width - 40,
                                       workingArea.Bottom - Size.Height - 16);
-
-            this.Opacity = 0;
         }
 
         private void notifyIcon1_MouseClick(object? sender, MouseEventArgs e)
@@ -185,9 +206,10 @@ namespace DNS_on_Tray
 
         private void frmMain_Deactivate(object? sender, EventArgs e)
         {
-            if (this.Opacity > 0 && !suppressAutoHide)
+            if (this.Visible && !suppressAutoHide)
             {
-                HideMainWindow();
+                // Hide after the activation change has finished rather than in the middle of it.
+                BeginInvoke(HideMainWindow);
                 lastAutoHide = DateTime.Now;
             }
         }
@@ -220,10 +242,11 @@ namespace DNS_on_Tray
 
         #endregion
 
-        private void frmMain_Load(object sender, EventArgs e)
+        /// <summary>
+        /// One-time setup, run when the handle is first created (the window itself stays hidden).
+        /// </summary>
+        private void InitializeState()
         {
-            SetupFormStartPosition();
-
             ApplyLanguage();
             EnableAddButton();
 

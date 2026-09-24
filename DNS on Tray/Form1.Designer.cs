@@ -509,11 +509,10 @@
             Name = "frmMain";
             ShowInTaskbar = false;
             SizeGripStyle = SizeGripStyle.Hide;
-            StartPosition = FormStartPosition.CenterScreen;
+            StartPosition = FormStartPosition.Manual;
             Text = "DNS on Tray";
             Deactivate += frmMain_Deactivate;
             FormClosing += frmMain_FormClosing;
-            Load += frmMain_Load;
             DoubleClick += frmMain_DoubleClick;
             KeyDown += frmMain_KeyDown;
             ResumeLayout(false);
