@@ -147,6 +147,9 @@ namespace DNS_on_Tray
         {
             SetupFormStartPosition();
 
+            if (!SupportsDoH)
+                txtDoH.PlaceholderText = "needs Windows 11 (saved, not used)";
+
             EnableAddButton();
 
             optAdmin.Checked = ElevatedTaskExists();
@@ -171,7 +174,7 @@ namespace DNS_on_Tray
             if (currentDns == null || currentDns.Automatic)
                 return false;
 
-            return dns.Servers().ToHashSet().SetEquals(currentDns.Servers);
+            return dns.IPv4Servers().ToHashSet().SetEquals(currentDns.Servers);
         }
 
         private void MakeMenuItems()
@@ -388,7 +391,7 @@ namespace DNS_on_Tray
 
         private async Task ApplyDNS(DNS dns)
         {
-            DnsChangeResult result = await AddDNS(dns.DNS1(), dns.DNS2());
+            DnsChangeResult result = await AddDNS(dns);
             ReportResult(result, $"DNS set to {dns.Name()} ({dns.ServersText()}).");
             RefreshCurrentDNS();
         }
@@ -500,8 +503,11 @@ namespace DNS_on_Tray
                 if (await ShowInterceptedWarning(intercepted))
                     return;
 
+                // Same order as DNS.Servers(): IPv4 first, then IPv6.
+                List<string> names = dns.IPv4Servers().Select((_, i) => $"DNS{i + 1}")
+                    .Concat(dns.IPv6Servers().Select((_, i) => $"IPv6 {i + 1}")).ToList();
                 IEnumerable<string> parts = result.Select((ms, i) =>
-                    $"DNS{i + 1}: " + (ms is int value ? $"{value} ms" : "no answer"));
+                    $"{names[i]}: " + (ms is int value ? $"{value} ms" : "no answer"));
                 labelPingResult.Text = $"{selectedItem} - {string.Join(", ", parts)}";
 
                 int answered = result.Count(ms => ms.HasValue);
@@ -603,6 +609,9 @@ namespace DNS_on_Tray
             txtDNSName.Text = dns.Name();
             txtDNS1.Text = dns.DNS1();
             txtDNS2.Text = dns.DNS2();
+            txtDNS1v6.Text = dns.DNS1v6();
+            txtDNS2v6.Text = dns.DNS2v6();
+            txtDoH.Text = dns.DoH();
 
             label1.Text = $"Edit \"{dns.Name()}\"";
             btnDNSAdd.Text = "Save";
@@ -640,22 +649,35 @@ namespace DNS_on_Tray
             return !DNS.NameTaken(name);
         }
 
+        /// <summary>
+        /// Colors a field red when it has text that does not pass <paramref name="isValid"/>;
+        /// returns whether the field is acceptable (empty counts as acceptable).
+        /// </summary>
+        private static bool CheckField(TextBox textBox, Func<string, bool> isValid)
+        {
+            string text = textBox.Text.Trim();
+            bool ok = text == "" || isValid(text);
+            textBox.ForeColor = ok ? Color.DimGray : Color.Red;
+            return ok;
+        }
+
+        private DNS FormEntry()
+        {
+            return new DNS(txtDNSName.Text.Trim(), txtDNS1.Text.Trim(), txtDNS2.Text.Trim(),
+                           txtDNS1v6.Text.Trim(), txtDNS2v6.Text.Trim(), txtDoH.Text.Trim());
+        }
+
         private void EnableAddButton()
         {
-            string strDNSName = txtDNSName.Text.Trim();
-            string strDNS1 = txtDNS1.Text.Trim();
-            string strDNS2 = txtDNS2.Text.Trim();
+            bool nameOk = CheckField(txtDNSName, IsValidNewName);
+            bool fieldsOk = CheckField(txtDNS1, IsValidIPv4)
+                          & CheckField(txtDNS2, IsValidIPv4)
+                          & CheckField(txtDNS1v6, IsValidIPv6)
+                          & CheckField(txtDNS2v6, IsValidIPv6)
+                          & CheckField(txtDoH, IsValidDoH);
 
-            bool nameOk = IsValidNewName(strDNSName);
-            bool dns1Ok = IsValidIPv4(strDNS1);
-            bool dns2Ok = strDNS2 == "" || IsValidIPv4(strDNS2);
-
-            // Only flag fields the user has started typing in.
-            txtDNSName.ForeColor = nameOk || strDNSName == "" ? Color.DimGray : Color.Red;
-            txtDNS1.ForeColor = dns1Ok || strDNS1 == "" ? Color.DimGray : Color.Red;
-            txtDNS2.ForeColor = dns2Ok ? Color.DimGray : Color.Red;
-
-            btnDNSAdd.Enabled = nameOk && dns1Ok && dns2Ok;
+            // Name and DNS 1 are required.
+            btnDNSAdd.Enabled = nameOk && fieldsOk && txtDNSName.Text.Trim() != "" && txtDNS1.Text.Trim() != "";
         }
 
         private void ClearForm()
@@ -663,18 +685,17 @@ namespace DNS_on_Tray
             txtDNSName.Text = "";
             txtDNS1.Text = "";
             txtDNS2.Text = "";
+            txtDNS1v6.Text = "";
+            txtDNS2v6.Text = "";
+            txtDoH.Text = "";
         }
 
         private void btnDNSAdd_Click(object sender, EventArgs e)
         {
-            string strDNSName = txtDNSName.Text.Trim();
-            string strDNS1 = txtDNS1.Text.Trim();
-            string strDNS2 = txtDNS2.Text.Trim();
+            DNS dns = FormEntry();
 
-            if (!IsValidNewName(strDNSName) || !IsValidIPv4(strDNS1) || (strDNS2 != "" && !IsValidIPv4(strDNS2)))
+            if (!IsValidNewName(dns.Name()) || !IsValidEntry(dns))
                 return;
-
-            DNS dns = new(strDNSName, strDNS1, strDNS2);
 
             if (editingName != null)
             {
@@ -691,19 +712,65 @@ namespace DNS_on_Tray
             RefreshCurrentDNS();
         }
 
-        private void txtDNSName_TextChanged(object sender, EventArgs e)
+        private void txtDNS_TextChanged(object? sender, EventArgs e)
         {
             EnableAddButton();
         }
 
-        private void txtDNS1_TextChanged(object sender, EventArgs e)
+        private void btnImport_Click(object? sender, EventArgs e)
         {
-            EnableAddButton();
+            using OpenFileDialog dialog = new OpenFileDialog();
+            dialog.Filter = "DNS on Tray list (*.json)|*.json|All files (*.*)|*.*";
+            dialog.Title = "Import DNS servers";
+
+            suppressAutoHide = true;
+            try
+            {
+                if (dialog.ShowDialog(this) != DialogResult.OK)
+                    return;
+
+                var (added, skipped) = ServerListFile.Import(dialog.FileName);
+                RefreshCurrentDNS();
+
+                string message = $"Imported {added} server(s).";
+                if (skipped > 0)
+                    message += $" Skipped {skipped} (name already used or invalid addresses).";
+                MessageBox.Show(this, message, "DNS on Tray", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
+            {
+                MessageBox.Show(this, $"Could not import the file:\n{ex.Message}", "DNS on Tray", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                suppressAutoHide = false;
+            }
         }
 
-        private void txtDNS2_TextChanged(object sender, EventArgs e)
+        private void btnExport_Click(object? sender, EventArgs e)
         {
-            EnableAddButton();
+            using SaveFileDialog dialog = new SaveFileDialog();
+            dialog.Filter = "DNS on Tray list (*.json)|*.json";
+            dialog.FileName = "dns-servers.json";
+            dialog.Title = "Export DNS servers";
+
+            suppressAutoHide = true;
+            try
+            {
+                if (dialog.ShowDialog(this) != DialogResult.OK)
+                    return;
+
+                int count = ServerListFile.Export(dialog.FileName);
+                MessageBox.Show(this, $"Exported {count} server(s).", "DNS on Tray", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                MessageBox.Show(this, $"Could not export the file:\n{ex.Message}", "DNS on Tray", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                suppressAutoHide = false;
+            }
         }
 
         #endregion

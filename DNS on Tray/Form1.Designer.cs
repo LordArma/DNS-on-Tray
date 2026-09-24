@@ -33,6 +33,14 @@
             notifyIcon1 = new NotifyIcon(components);
             notifyMenu = new ContextMenuStrip(components);
             lstDNS = new ListBox();
+            lblDNS1v6 = new Label();
+            txtDNS1v6 = new TextBox();
+            lblDNS2v6 = new Label();
+            txtDNS2v6 = new TextBox();
+            lblDoH = new Label();
+            txtDoH = new TextBox();
+            btnImport = new Button();
+            btnExport = new Button();
             txtDNSName = new TextBox();
             lblDNSName = new Label();
             lblDNS1 = new Label();
@@ -261,7 +269,7 @@
             txtDNSName.Name = "txtDNSName";
             txtDNSName.Size = new Size(245, 23);
             txtDNSName.TabIndex = 7;
-            txtDNSName.TextChanged += txtDNSName_TextChanged;
+            txtDNSName.TextChanged += txtDNS_TextChanged;
             //
             // lblDNS1
             //
@@ -271,7 +279,7 @@
             lblDNS1.Name = "lblDNS1";
             lblDNS1.Size = new Size(42, 15);
             lblDNS1.TabIndex = 27;
-            lblDNS1.Text = "DNS 1:";
+            lblDNS1.Text = "IPv4 1:";
             //
             // txtDNS1
             //
@@ -283,7 +291,7 @@
             txtDNS1.Name = "txtDNS1";
             txtDNS1.Size = new Size(245, 23);
             txtDNS1.TabIndex = 8;
-            txtDNS1.TextChanged += txtDNS1_TextChanged;
+            txtDNS1.TextChanged += txtDNS_TextChanged;
             //
             // lblDNS2
             //
@@ -293,7 +301,7 @@
             lblDNS2.Name = "lblDNS2";
             lblDNS2.Size = new Size(42, 15);
             lblDNS2.TabIndex = 28;
-            lblDNS2.Text = "DNS 2:";
+            lblDNS2.Text = "IPv4 2:";
             //
             // txtDNS2
             //
@@ -306,17 +314,109 @@
             txtDNS2.PlaceholderText = "optional";
             txtDNS2.Size = new Size(245, 23);
             txtDNS2.TabIndex = 9;
-            txtDNS2.TextChanged += txtDNS2_TextChanged;
+            txtDNS2.TextChanged += txtDNS_TextChanged;
+            //
+            // lblDNS1v6
+            //
+            lblDNS1v6.AutoSize = true;
+            lblDNS1v6.ForeColor = Color.Gainsboro;
+            lblDNS1v6.Location = new Point(12, 413);
+            lblDNS1v6.Name = "lblDNS1v6";
+            lblDNS1v6.TabIndex = 29;
+            lblDNS1v6.Text = "IPv6 1:";
+            //
+            // txtDNS1v6
+            //
+            txtDNS1v6.BackColor = Color.Gainsboro;
+            txtDNS1v6.BorderStyle = BorderStyle.FixedSingle;
+            txtDNS1v6.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            txtDNS1v6.ForeColor = Color.DimGray;
+            txtDNS1v6.Location = new Point(93, 410);
+            txtDNS1v6.Name = "txtDNS1v6";
+            txtDNS1v6.PlaceholderText = "optional";
+            txtDNS1v6.Size = new Size(245, 23);
+            txtDNS1v6.TabIndex = 30;
+            txtDNS1v6.TextChanged += txtDNS_TextChanged;
+            //
+            // lblDNS2v6
+            //
+            lblDNS2v6.AutoSize = true;
+            lblDNS2v6.ForeColor = Color.Gainsboro;
+            lblDNS2v6.Location = new Point(12, 442);
+            lblDNS2v6.Name = "lblDNS2v6";
+            lblDNS2v6.TabIndex = 31;
+            lblDNS2v6.Text = "IPv6 2:";
+            //
+            // txtDNS2v6
+            //
+            txtDNS2v6.BackColor = Color.Gainsboro;
+            txtDNS2v6.BorderStyle = BorderStyle.FixedSingle;
+            txtDNS2v6.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            txtDNS2v6.ForeColor = Color.DimGray;
+            txtDNS2v6.Location = new Point(93, 439);
+            txtDNS2v6.Name = "txtDNS2v6";
+            txtDNS2v6.PlaceholderText = "optional";
+            txtDNS2v6.Size = new Size(245, 23);
+            txtDNS2v6.TabIndex = 32;
+            txtDNS2v6.TextChanged += txtDNS_TextChanged;
+            //
+            // lblDoH
+            //
+            lblDoH.AutoSize = true;
+            lblDoH.ForeColor = Color.Gainsboro;
+            lblDoH.Location = new Point(12, 471);
+            lblDoH.Name = "lblDoH";
+            lblDoH.TabIndex = 33;
+            lblDoH.Text = "DoH URL:";
+            //
+            // txtDoH
+            //
+            txtDoH.BackColor = Color.Gainsboro;
+            txtDoH.BorderStyle = BorderStyle.FixedSingle;
+            txtDoH.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            txtDoH.ForeColor = Color.DimGray;
+            txtDoH.Location = new Point(93, 468);
+            txtDoH.Name = "txtDoH";
+            txtDoH.PlaceholderText = "optional, https://.../dns-query";
+            txtDoH.Size = new Size(245, 23);
+            txtDoH.TabIndex = 34;
+            txtDoH.TextChanged += txtDNS_TextChanged;
+            //
+            // btnImport
+            //
+            btnImport.BackColor = Color.DimGray;
+            btnImport.FlatStyle = FlatStyle.Flat;
+            btnImport.ForeColor = Color.Gainsboro;
+            btnImport.Location = new Point(12, 497);
+            btnImport.Name = "btnImport";
+            btnImport.Size = new Size(65, 25);
+            btnImport.TabIndex = 35;
+            btnImport.Text = "Import...";
+            btnImport.UseVisualStyleBackColor = false;
+            btnImport.Click += btnImport_Click;
+            //
+            // btnExport
+            //
+            btnExport.BackColor = Color.DimGray;
+            btnExport.FlatStyle = FlatStyle.Flat;
+            btnExport.ForeColor = Color.Gainsboro;
+            btnExport.Location = new Point(81, 497);
+            btnExport.Name = "btnExport";
+            btnExport.Size = new Size(65, 25);
+            btnExport.TabIndex = 36;
+            btnExport.Text = "Export...";
+            btnExport.UseVisualStyleBackColor = false;
+            btnExport.Click += btnExport_Click;
             //
             // btnDNSCancel
             //
             btnDNSCancel.BackColor = Color.DimGray;
             btnDNSCancel.FlatStyle = FlatStyle.Flat;
             btnDNSCancel.ForeColor = Color.Gainsboro;
-            btnDNSCancel.Location = new Point(152, 410);
+            btnDNSCancel.Location = new Point(152, 497);
             btnDNSCancel.Name = "btnDNSCancel";
             btnDNSCancel.Size = new Size(90, 25);
-            btnDNSCancel.TabIndex = 10;
+            btnDNSCancel.TabIndex = 37;
             btnDNSCancel.Text = "Cancel";
             btnDNSCancel.UseVisualStyleBackColor = false;
             btnDNSCancel.Visible = false;
@@ -328,10 +428,10 @@
             btnDNSAdd.Enabled = false;
             btnDNSAdd.FlatStyle = FlatStyle.Flat;
             btnDNSAdd.ForeColor = Color.Gainsboro;
-            btnDNSAdd.Location = new Point(248, 410);
+            btnDNSAdd.Location = new Point(248, 497);
             btnDNSAdd.Name = "btnDNSAdd";
             btnDNSAdd.Size = new Size(90, 25);
-            btnDNSAdd.TabIndex = 11;
+            btnDNSAdd.TabIndex = 38;
             btnDNSAdd.Text = "Add";
             btnDNSAdd.UseVisualStyleBackColor = false;
             btnDNSAdd.Click += btnDNSAdd_Click;
@@ -341,10 +441,10 @@
             optStartup.AutoSize = true;
             optStartup.FlatStyle = FlatStyle.Flat;
             optStartup.ForeColor = Color.Gainsboro;
-            optStartup.Location = new Point(12, 447);
+            optStartup.Location = new Point(12, 534);
             optStartup.Name = "optStartup";
             optStartup.Size = new Size(119, 19);
-            optStartup.TabIndex = 12;
+            optStartup.TabIndex = 39;
             optStartup.Text = "Launch on startup";
             optStartup.UseVisualStyleBackColor = true;
             optStartup.Click += optStartup_Click;
@@ -354,10 +454,10 @@
             optAdmin.AutoSize = true;
             optAdmin.FlatStyle = FlatStyle.Flat;
             optAdmin.ForeColor = Color.Gainsboro;
-            optAdmin.Location = new Point(12, 470);
+            optAdmin.Location = new Point(12, 557);
             optAdmin.Name = "optAdmin";
             optAdmin.Size = new Size(283, 19);
-            optAdmin.TabIndex = 13;
+            optAdmin.TabIndex = 40;
             optAdmin.Text = "Run as administrator (no prompt when switching)";
             optAdmin.UseVisualStyleBackColor = true;
             optAdmin.Click += optAdmin_Click;
@@ -367,12 +467,20 @@
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.DimGray;
-            ClientSize = new Size(350, 500);
+            ClientSize = new Size(350, 587);
             ControlBox = false;
             Controls.Add(optAdmin);
             Controls.Add(optStartup);
             Controls.Add(btnDNSAdd);
             Controls.Add(btnDNSCancel);
+            Controls.Add(btnExport);
+            Controls.Add(btnImport);
+            Controls.Add(lblDoH);
+            Controls.Add(txtDoH);
+            Controls.Add(lblDNS2v6);
+            Controls.Add(txtDNS2v6);
+            Controls.Add(lblDNS1v6);
+            Controls.Add(txtDNS1v6);
             Controls.Add(lblDNS2);
             Controls.Add(txtDNS2);
             Controls.Add(lblDNS1);
@@ -440,5 +548,13 @@
         private Label lblAdapter;
         private ComboBox cboAdapter;
         private Label lblCurrent;
+        private Label lblDNS1v6;
+        private TextBox txtDNS1v6;
+        private Label lblDNS2v6;
+        private TextBox txtDNS2v6;
+        private Label lblDoH;
+        private TextBox txtDoH;
+        private Button btnImport;
+        private Button btnExport;
     }
 }

@@ -54,6 +54,46 @@ namespace DNS_on_Tray
                 && ip.ToString() == text;
         }
 
+        /// <summary>
+        /// Returns true when the text is an IPv6 address without a zone id (e.g. "2606:4700:4700::1111").
+        /// </summary>
+        public static bool IsValidIPv6(string text)
+        {
+            text = text.Trim();
+            return !text.Contains('%')
+                && IPAddress.TryParse(text, out IPAddress? ip)
+                && ip.AddressFamily == AddressFamily.InterNetworkV6;
+        }
+
+        /// <summary>
+        /// Returns true when the text is an https DNS-over-HTTPS template (e.g. https://dns.google/dns-query).
+        /// </summary>
+        public static bool IsValidDoH(string text)
+        {
+            text = text.Trim();
+            return !text.Any(char.IsWhiteSpace)
+                && !text.Contains('\'')
+                && Uri.TryCreate(text, UriKind.Absolute, out Uri? uri)
+                && uri.Scheme == Uri.UriSchemeHttps;
+        }
+
+        /// <summary>
+        /// Checks every field of an entry: DNS1 is a required IPv4 address, the rest are optional.
+        /// </summary>
+        public static bool IsValidEntry(DNS dns)
+        {
+            return IsValidIPv4(dns.DNS1())
+                && (dns.DNS2() == "" || IsValidIPv4(dns.DNS2()))
+                && (dns.DNS1v6() == "" || IsValidIPv6(dns.DNS1v6()))
+                && (dns.DNS2v6() == "" || IsValidIPv6(dns.DNS2v6()))
+                && (dns.DoH() == "" || IsValidDoH(dns.DoH()));
+        }
+
+        /// <summary>
+        /// Windows 11 (build 22000) and later can use DNS over HTTPS.
+        /// </summary>
+        public static bool SupportsDoH => OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000);
+
         #region Settings
 
         private static string? GetSetting(string name)
@@ -219,10 +259,11 @@ namespace DNS_on_Tray
         }
 
         /// <summary>
-        /// Builds a script that runs <paramref name="perInterface"/> for every target adapter
-        /// ($i is the interface index), then flushes the DNS cache. Exits 1 on any error.
+        /// Builds a script that runs <paramref name="before"/> once, then <paramref name="perInterface"/>
+        /// for every target adapter ($i is the interface index), then flushes the DNS cache.
+        /// Exits 1 on any error.
         /// </summary>
-        private static DnsChangeResult ChangeDNS(string perInterface)
+        private static DnsChangeResult ChangeDNS(string perInterface, string before = "")
         {
             List<int> indexes = TargetInterfaceIndexes();
             if (indexes.Count == 0)
@@ -231,6 +272,7 @@ namespace DNS_on_Tray
             string script =
                 "$ErrorActionPreference = 'Stop'\n" +
                 "try {\n" +
+                before +
                 $"  foreach ($i in @({string.Join(",", indexes)})) {{ {perInterface} }}\n" +
                 "  Clear-DnsClientCache\n" +
                 "  exit 0\n" +
@@ -240,21 +282,41 @@ namespace DNS_on_Tray
         }
 
         /// <summary>
-        /// Sets the DNS servers of the target adapters. <paramref name="dns2"/> may be empty.
+        /// Sets the DNS servers (IPv4 and any IPv6) of the target adapters. When the entry has a
+        /// DoH template and Windows supports it, its servers are registered for DNS over HTTPS.
         /// </summary>
-        public static Task<DnsChangeResult> AddDNS(string dns1, string dns2)
+        public static Task<DnsChangeResult> AddDNS(DNS dns)
         {
-            dns1 = dns1.Trim();
-            dns2 = dns2.Trim();
-
-            // Addresses end up inside an elevated script, so only strict IPv4 text is allowed.
-            if (!IsValidIPv4(dns1) || (dns2 != "" && !IsValidIPv4(dns2)))
+            // Values end up inside an elevated script, so everything is validated first and
+            // addresses are written back in their normalized form.
+            if (!IsValidEntry(dns))
                 return Task.FromResult(DnsChangeResult.InvalidAddress);
 
-            string servers = dns2 == "" ? $"'{dns1}'" : $"'{dns1}','{dns2}'";
+            List<string> servers = dns.Servers().Select(s => IPAddress.Parse(s.Trim()).ToString()).ToList();
+            string serverList = string.Join(",", servers.Select(s => $"'{s}'"));
 
-            return Task.Run(() => ChangeDNS(
-                $"Set-DnsClientServerAddress -InterfaceIndex $i -ServerAddresses @({servers})"));
+            // Reset first so IPv6 servers from a previous entry do not linger.
+            string perInterface =
+                "Set-DnsClientServerAddress -InterfaceIndex $i -ResetServerAddresses; " +
+                $"Set-DnsClientServerAddress -InterfaceIndex $i -ServerAddresses @({serverList})";
+
+            string before = "";
+            if (dns.DoH() != "" && SupportsDoH)
+            {
+                string template = PsQuote(dns.DoH().Trim());
+
+                // AutoUpgrade makes Windows use DoH whenever this server is configured; falling back
+                // to plain DNS keeps name resolution working where DoH is blocked.
+                before = $"  foreach ($s in @({serverList})) {{\n" +
+                         "    if (Get-DnsClientDohServerAddress -ServerAddress $s -ErrorAction SilentlyContinue) {\n" +
+                         $"      Set-DnsClientDohServerAddress -ServerAddress $s -DohTemplate {template} -AutoUpgrade $true -AllowFallbackToUdp $true | Out-Null\n" +
+                         "    } else {\n" +
+                         $"      Add-DnsClientDohServerAddress -ServerAddress $s -DohTemplate {template} -AutoUpgrade $true -AllowFallbackToUdp $true | Out-Null\n" +
+                         "    }\n" +
+                         "  }\n";
+            }
+
+            return Task.Run(() => ChangeDNS(perInterface, before));
         }
 
         public static Task<DnsChangeResult> ClearDNS()
@@ -276,42 +338,31 @@ namespace DNS_on_Tray
             SendMessage(b.Handle, BCM_SETSHIELD, 0, 0xFFFFFFFF);
         }
 
+        /// <summary>
+        /// The servers added to a new database.
+        /// </summary>
+        public static List<DNS> PopularDNS()
+        {
+            return new List<DNS>
+            {
+                new DNS("Cloudflare", "1.1.1.1", "1.0.0.1", "2606:4700:4700::1111", "2606:4700:4700::1001", "https://cloudflare-dns.com/dns-query"),
+                new DNS("Google (Public DNS)", "8.8.8.8", "8.8.4.4", "2001:4860:4860::8888", "2001:4860:4860::8844", "https://dns.google/dns-query"),
+                new DNS("OpenDNS", "208.67.220.220", "208.67.222.222", "2620:119:35::35", "2620:119:53::53", "https://doh.opendns.com/dns-query"),
+                new DNS("Shecan.ir", "178.22.122.100", "185.51.200.2"),
+                new DNS("Electro", "78.157.42.100", "78.157.42.101"),
+                new DNS("403.online", "10.202.10.202", "10.202.10.102"),
+                new DNS("Begzar.ir", "185.55.226.26", "185.55.225.25"),
+                new DNS("Radar.game", "10.202.10.10", "10.202.10.11"),
+                new DNS("Pishgaman.net", "5.202.100.100", "5.202.100.101"),
+                new DNS("Shatel.ir", "85.15.1.14", "85.15.1.15"),
+                new DNS("Hostiran.net", "172.29.0.100", "172.29.2.100"),
+            };
+        }
+
         public static void AddPopularDNS()
         {
-            DNS dns;
-
-            dns = new DNS("Cloudflare", "1.1.1.1", "1.0.0.1");
-            dns.Save();
-
-            dns = new DNS("Google (Public DNS)", "8.8.8.8", "8.8.4.4");
-            dns.Save();
-
-            dns = new DNS("OpenDNS", "208.67.220.220", "208.67.222.222");
-            dns.Save();
-
-            dns = new DNS("Shecan.ir", "178.22.122.100", "185.51.200.2");
-            dns.Save();
-
-            dns = new DNS("Electro", "78.157.42.100", "78.157.42.101");
-            dns.Save();
-
-            dns = new DNS("403.online", "10.202.10.202", "10.202.10.102");
-            dns.Save();
-
-            dns = new DNS("Begzar.ir", "185.55.226.26", "185.55.225.25");
-            dns.Save();
-
-            dns = new DNS("Radar.game", "10.202.10.10", "10.202.10.11");
-            dns.Save();
-
-            dns = new DNS("Pishgaman.net", "5.202.100.100", "5.202.100.101");
-            dns.Save();
-
-            dns = new DNS("Shatel.ir", "85.15.1.14", "85.15.1.15");
-            dns.Save();
-
-            dns = new DNS("Hostiran.net", "172.29.0.100", "172.29.2.100");
-            dns.Save();
+            foreach (DNS dns in PopularDNS())
+                dns.Save();
         }
 
         #region Startup
