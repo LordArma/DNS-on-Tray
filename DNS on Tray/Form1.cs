@@ -10,6 +10,8 @@ namespace DNS_on_Tray
 
     public partial class frmMain : Form
     {
+        private const string ClearItem = "Clear";
+
         private CancellationTokenSource? pingCancellationTokenSource;
 
         public frmMain()
@@ -53,21 +55,20 @@ namespace DNS_on_Tray
             notifyMenu.Items.Clear();
             lstDNS.Items.Clear();
 
-            lstDNS.Items.Add("Clear");
+            lstDNS.Items.Add(ClearItem);
 
-            ToolStripMenuItem item = new ToolStripMenuItem();
+            ToolStripMenuItem item;
 
             foreach (var dns in DNS.All())
             {
                 lstDNS.Items.Add(dns.Name());
 
                 item = new ToolStripMenuItem();
-                item.Name = "dns" + Convert.ToString(new Random().Next(1, 99999));
                 item.Text = dns.Name();
-                item.Click += new EventHandler(MenuItemClickHandler);
+                item.Tag = dns;
+                item.Click += new EventHandler(DnsMenuItem_Click);
 
                 notifyMenu.Items.Add(item);
-
             }
 
 
@@ -78,7 +79,7 @@ namespace DNS_on_Tray
             item.Name = strMenuItemName;
             item.Text = strMenuItemName;
             item.Image = Resources.clear.ToBitmap();
-            item.Click += new EventHandler(MenuItemClickHandler);
+            item.Click += new EventHandler(ClearMenuItem_Click);
             notifyMenu.Items.Add(item);
 
             notifyMenu.Items.Add("-");
@@ -88,7 +89,7 @@ namespace DNS_on_Tray
             item.Name = strMenuItemName;
             item.Text = strMenuItemName;
             item.Image = Resources.dns.ToBitmap();
-            item.Click += new EventHandler(MenuItemClickHandler);
+            item.Click += new EventHandler(SettingsMenuItem_Click);
             notifyMenu.Items.Add(item);
 
             notifyMenu.Items.Add("-");
@@ -98,7 +99,7 @@ namespace DNS_on_Tray
             item.Name = strMenuItemName;
             item.Text = strMenuItemName;
             item.Image = Resources.exit.ToBitmap();
-            item.Click += new EventHandler(MenuItemClickHandler);
+            item.Click += new EventHandler(ExitMenuItem_Click);
             notifyMenu.Items.Add(item);
         }
 
@@ -117,31 +118,89 @@ namespace DNS_on_Tray
                 optStartup.Checked = false;
             }
 
-            MakeMenuItems();
+            try
+            {
+                MakeMenuItems();
+            }
+            catch (Exception ex) when (ex is Microsoft.Data.Sqlite.SqliteException or IOException or UnauthorizedAccessException)
+            {
+                MessageBox.Show($"Could not load the saved DNS list:\n{ex.Message}", "DNS on Tray",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
-        private void MenuItemClickHandler(object sender, EventArgs e)
+        private async void DnsMenuItem_Click(object? sender, EventArgs e)
         {
-            ToolStripMenuItem clickedItem = (ToolStripMenuItem)sender;
-            string strItem = clickedItem.Text;
-            DNS dns = new DNS(strItem);
+            if (sender is ToolStripMenuItem { Tag: DNS dns })
+                await ApplyDNS(dns);
+        }
 
-            if (strItem != "Exit" & strItem != "Settings" & strItem != "Clear")
+        private async void ClearMenuItem_Click(object? sender, EventArgs e)
+        {
+            await ApplyClear();
+        }
+
+        private void SettingsMenuItem_Click(object? sender, EventArgs e)
+        {
+            ShowMainWindow();
+        }
+
+        private void ExitMenuItem_Click(object? sender, EventArgs e)
+        {
+            System.Windows.Forms.Application.Exit();
+        }
+
+        private async Task ApplyDNS(DNS dns)
+        {
+            DnsChangeResult result = await AddDNS(dns.DNS1(), dns.DNS2());
+            ReportResult(result, $"DNS set to {dns.Name()} ({dns.DNS1()}, {dns.DNS2()}).");
+        }
+
+        private async Task ApplyClear()
+        {
+            DnsChangeResult result = await ClearDNS();
+            ReportResult(result, "DNS reset to automatic (DHCP).");
+        }
+
+        private void ReportResult(DnsChangeResult result, string successMessage)
+        {
+            switch (result)
             {
-                AddDNS(dns.DNS1(), dns.DNS2());
+                case DnsChangeResult.Success:
+                    notifyIcon1.ShowBalloonTip(3000, "DNS on Tray", successMessage, ToolTipIcon.Info);
+                    break;
+                case DnsChangeResult.Cancelled:
+                    notifyIcon1.ShowBalloonTip(3000, "DNS on Tray", "DNS was not changed: administrator permission was declined.", ToolTipIcon.Warning);
+                    break;
+                case DnsChangeResult.NoAdapter:
+                    notifyIcon1.ShowBalloonTip(3000, "DNS on Tray", "DNS was not changed: no connected network adapter was found.", ToolTipIcon.Warning);
+                    break;
+                case DnsChangeResult.InvalidAddress:
+                    notifyIcon1.ShowBalloonTip(3000, "DNS on Tray", "DNS was not changed: the saved addresses are not valid IPv4 addresses.", ToolTipIcon.Error);
+                    break;
+                default:
+                    notifyIcon1.ShowBalloonTip(3000, "DNS on Tray", "Failed to change DNS.", ToolTipIcon.Error);
+                    break;
             }
-            else if (strItem.ToString() == "Exit")
-            {
-                System.Windows.Forms.Application.Exit();
-            }
-            else if (strItem.ToString() == "Settings")
-            {
-                ShowMainWindow();
-            }
-            else if (strItem.ToString() == "Clear")
-            {
-                ClearDNS();
-            }
+        }
+
+        /// <summary>
+        /// Returns the DNS selected in the list, or null when nothing (or the Clear entry) is selected.
+        /// </summary>
+        private DNS? SelectedDNS()
+        {
+            string? selectedItem = lstDNS.SelectedItem as string;
+            if (selectedItem == null || selectedItem == ClearItem)
+                return null;
+
+            return DNS.Find(selectedItem);
+        }
+
+        private bool IsValidNewName(string name)
+        {
+            return name != ""
+                && !string.Equals(name, ClearItem, StringComparison.OrdinalIgnoreCase)
+                && !DNS.NameTaken(name);
         }
 
         private void EnableAddButton()
@@ -150,14 +209,16 @@ namespace DNS_on_Tray
             string strDNS1 = txtDNS1.Text.Trim();
             string strDNS2 = txtDNS2.Text.Trim();
 
-            if (strDNSName != "" & strDNS1 != "" & strDNS2 != "")
-            {
-                btnDNSAdd.Enabled = true;
-            }
-            else
-            {
-                btnDNSAdd.Enabled = false;
-            }
+            bool nameOk = IsValidNewName(strDNSName);
+            bool dns1Ok = IsValidIPv4(strDNS1);
+            bool dns2Ok = IsValidIPv4(strDNS2);
+
+            // Only flag fields the user has started typing in.
+            txtDNSName.ForeColor = nameOk || strDNSName == "" ? SystemColors.WindowText : Color.Red;
+            txtDNS1.ForeColor = dns1Ok || strDNS1 == "" ? SystemColors.WindowText : Color.Red;
+            txtDNS2.ForeColor = dns2Ok || strDNS2 == "" ? SystemColors.WindowText : Color.Red;
+
+            btnDNSAdd.Enabled = nameOk && dns1Ok && dns2Ok;
         }
 
         private async void btnDNSPing_Click(object sender, EventArgs e)
@@ -169,21 +230,21 @@ namespace DNS_on_Tray
             pingCancellationTokenSource = new CancellationTokenSource();
             var cancellationToken = pingCancellationTokenSource.Token;
 
-            string selectedItem = Convert.ToString(lstDNS.SelectedItem) ?? string.Empty;
-
-            if (selectedItem == "Clear")
+            DNS? dns = SelectedDNS();
+            if (dns == null)
             {
-                ClearDNS();
+                labelPingResult.Text = "Select a server to test.";
+                labelPingResult.ForeColor = SystemColors.GrayText;
                 return;
             }
+
+            string selectedItem = dns.Name();
 
             labelPingResult.Text = $"Testing {selectedItem}...";
             labelPingResult.ForeColor = Color.LightBlue;
 
             try
             {
-                var dns = new DNS(selectedItem);
-
                 var result = await PingDNS(
                     dns.DNS1(),
                     dns.DNS2(),
@@ -245,30 +306,26 @@ namespace DNS_on_Tray
 
         private void btnDNSRemove_Click(object sender, EventArgs e)
         {
-            string strSlelectedItem = Convert.ToString(lstDNS.SelectedItem) + "";
-            if (strSlelectedItem != "Clear")
-            {
-                lstDNS.Items.Remove(strSlelectedItem);
-                DNS dns = new(strSlelectedItem);
-                dns.Remove();
-                MakeMenuItems();
-            }
+            DNS? dns = SelectedDNS();
+            if (dns == null)
+                return;
 
+            dns.Remove();
+            MakeMenuItems();
+            EnableAddButton();
         }
 
-        private void btnDNSSet_Click(object sender, EventArgs e)
+        private async void btnDNSSet_Click(object sender, EventArgs e)
         {
-            string strSlelectedItem = Convert.ToString(lstDNS.SelectedItem) + "";
-            if (strSlelectedItem == "Clear")
+            if (lstDNS.SelectedItem as string == ClearItem)
             {
-                ClearDNS();
+                await ApplyClear();
+                return;
             }
-            else
-            {
-                string dnsName = strSlelectedItem;
-                DNS dns = new DNS(dnsName);
-                AddDNS(dns.DNS1(), dns.DNS2());
-            }
+
+            DNS? dns = SelectedDNS();
+            if (dns != null)
+                await ApplyDNS(dns);
         }
 
         private void ClearForm()
@@ -280,12 +337,15 @@ namespace DNS_on_Tray
 
         private void btnDNSAdd_Click(object sender, EventArgs e)
         {
-            string strDNSName = txtDNSName.Text;
-            lstDNS.Items.Add(strDNSName);
+            string strDNSName = txtDNSName.Text.Trim();
+            string strDNS1 = txtDNS1.Text.Trim();
+            string strDNS2 = txtDNS2.Text.Trim();
 
-            DNS dns = new(strDNSName, txtDNS1.Text, txtDNS2.Text);
-            if (!dns.Exist())
-                dns.Save();
+            if (!IsValidNewName(strDNSName) || !IsValidIPv4(strDNS1) || !IsValidIPv4(strDNS2))
+                return;
+
+            DNS dns = new(strDNSName, strDNS1, strDNS2);
+            dns.Save();
 
             ClearForm();
             MakeMenuItems();
