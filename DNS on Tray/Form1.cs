@@ -342,7 +342,7 @@ namespace DNS_on_Tray
             item = new ToolStripMenuItem();
             item.Name = strMenuItemName;
             item.Text = L.Settings;
-            item.Image = Resources.dns.ToBitmap();
+            item.Image = Resources.settings.ToBitmap();
             if (hotkeyRegistered)
                 item.ShortcutKeyDisplayString = "Ctrl+Alt+D";
             item.Click += new EventHandler(SettingsMenuItem_Click);

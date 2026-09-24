@@ -7,8 +7,8 @@ Guidance for Claude Code (and humans) working in this repository. Keep the **Roa
 **DNS on Tray** is a Windows system-tray app for switching the machine's DNS servers with one click.
 
 - Upstream: https://github.com/LordArma/DNS-on-Tray (the old name `DNS-on-Try` redirects; `origin` now points at the new URL)
-- Stack: C# / WinForms, `net8.0-windows`, self-contained single-file publish
-- Storage: SQLite (`Microsoft.Data.Sqlite`) at `%LOCALAPPDATA%\dnsontry.db`, table `dnsTable(dnsName PK, dns1, dns2, dns1v6, dns2v6, doh)`. The last three columns are added to older databases by `MakeDB`, and known default providers get backfilled. Only `dns1` is required.
+- Stack: C# / WinForms, `net10.0-windows`, self-contained single-file publish (compressed, SQLite native lib bundled; ~50 MB)
+- Storage: SQLite (`Microsoft.Data.Sqlite`) at `%LOCALAPPDATA%\dnsontry.db`, table `dnsTable(dnsName PK, dns1, dns2, dns1v6, dns2v6, doh)`. The last three columns are added to older databases by `MakeDB`, and known default providers get backfilled. Only `dns1` is required. A `meta` table stores `seedVersion`; defaults added later (`Helper.DefaultsAddedInSeedVersion`) are inserted once into existing databases.
 - Settings: `HKCU\SOFTWARE\DNS on Tray` (`Adapter`, `Language`)
 - Version: `<Version>` in `DNS on Tray/DNS on Tray.csproj`
 - Windows-only. From WSL, use the Windows SDK: `"/mnt/c/Program Files/dotnet/dotnet.exe" build ...` (SDK 10.x is installed). If the app is running it locks `bin\Debug`, so build with `-o "obj\\verify"` instead.
@@ -19,11 +19,12 @@ Guidance for Claude Code (and humans) working in this repository. Keep the **Roa
 ```powershell
 dotnet restore
 dotnet build
+dotnet test                                          # "DNS on Tray.Tests" (xunit)
 dotnet run --project "DNS on Tray"
 dotnet publish "DNS on Tray" -c Release -r win-x64   # single-file, self-contained exe
 ```
 
-CI: `.github/workflows/dotnet.yml` (windows-latest, restore + Debug build, uploads `bin\Debug`).
+CI: `.github/workflows/dotnet.yml` (windows-latest, .NET 10: Release build, tests, publishes self-contained and framework-dependent exes as artifacts). Releases are created by hand with `gh release create` (asset `DNS-on-Tray.zip` containing the self-contained exe).
 
 ## Code map
 
@@ -37,7 +38,8 @@ CI: `.github/workflows/dotnet.yml` (windows-latest, restore + Debug build, uploa
 | `DNS on Tray/ServerListFile.cs` | Import/export of the server list as JSON (`{version, servers:[{name,dns1,dns2,dns1v6,dns2v6,doh}]}`); imports skip used names and invalid entries |
 | `DNS on Tray/L.cs` | All UI text in English and Farsi (`L.T(en, fa)`), language setting (auto/en/fa), `L.Ltr()` wraps Latin text in LRE/PDF marks for RTL. GDI doesn't render Unicode isolates (LRI/PDI), so don't use them. |
 | `DNS on Tray/DnsProbe.cs` | Health check: real DNS query (UDP/53, `google.com` A record, 2 s timeout); `IsIntercepted` detects VPN/proxy DNS hijacking by querying the reserved 192.0.2.1 |
-| `DNS on Tray/Resources.resx` | Icons (`dns`, `clear`, `exit`) |
+| `DNS on Tray/Resources.resx` | Menu icons (`dns`, `settings`, `clear`, `exit`). App/tray icon is `dns.ico`, also embedded in `Form1.resx`. The icons were generated in code (globe, gear, reset arrow, power), with multi-size 16–256 px frames. |
+| `DNS on Tray.Tests/` | xunit tests: validation, storage/migration/seeding (temp DB via internal `DNS.DbPath`), import/export, DNS probe against a fake local UDP server |
 
 ### How things work
 - **Window show/hide**: `ShowMainWindow`/`HideMainWindow` set `Opacity`, `Visible` and `ShowInTaskbar`. The form sits in the bottom-right of the working area. A left click on the tray icon toggles it. It hides on deactivate (the `lastAutoHide` 500 ms guard stops the same tray click from reopening it), and on ✕, Esc, Alt+F4 or double-click. Only Exit in the tray menu quits.
@@ -92,12 +94,12 @@ _Last analysed: 2026-09-24 (commit `87ebf58`)._
 - [ ] Test on Windows 10
 - [ ] Package & sign releases (signing needs a code-signing certificate; packaging overlaps with the Phase 4 CI item)
 
-### Phase 4: Code health & release
-- [ ] Upgrade to .NET 10 LTS (.NET 8 support ends Nov 2026)
-- [ ] Consider replacing SQLite with a JSON file (drops the native dependency); migrate the existing `dnsontry.db`
-- [ ] Split into storage / DNS service / UI layers; add a unit test project (validation, storage)
-- [ ] CI: `dotnet publish -c Release`, attach the exe to GitHub Releases on tags, and drop the hard-coded `D:\a\...` artifact path
-- [ ] README: add OpenDNS to the defaults list; refresh screenshots and the to-do list
+### Phase 4: Code health & release (done 2026-09-24, released as v1.0.0)
+- [x] Upgrade to .NET 10 LTS
+- [x] ~~Replace SQLite with JSON~~ decided against: the native lib is now bundled in the single file, and switching would add a second migration path
+- [x] Unit test project (41 tests). A further layer split was judged not worth the churn; the logic already lives outside the form (`Helper`, `DNS`, `DnsProbe`, `ServerListFile`, `L`)
+- [x] CI: Release build + tests + publish artifacts (releases themselves are created manually)
+- [x] README rewritten, new screenshots (`screenshot1-3.png`), new icons
 - [x] Cleanup: `Opacity = 100` should be `1.0`; quote the exe path in the Run key; remove `new Random()` per menu item, the dead `frmMain_Activated` code and unused usings; put `DnsPingResult` in the `DNS_on_Tray` namespace (done in Phase 2; `DnsPingResult` was removed)
 
 ### Known limitations
@@ -107,5 +109,7 @@ _Last analysed: 2026-09-24 (commit `87ebf58`)._
 - The "Run as administrator" task stores the exe path; moving the exe requires toggling the option off and on again.
 
 ### Done
+- [x] v1.0.0 released 2026-09-24 (first non-pre-release). Added the Bertina.ir and Penta Server defaults (addresses from the providers' own pages)
+- [x] Fixed a crash on focus loss (Opacity + Visible in Deactivate → Win32Exception 87); the window now hides via `SetVisibleCore`/`Visible` only
 - [x] Sync local repo with upstream `LordArma/DNS-on-Tray` (fast-forward to `87ebf58`, remote URL updated), 2026-09-24
 - [x] DNS health-check (ping) button, upstream PR #1/#2

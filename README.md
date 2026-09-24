@@ -1,19 +1,27 @@
 # DNS on Tray
-A simple program to easily add, remove or change current DNS of the Windows. This program helps you to easily change your computer's DNS through the system tray with just one click.
+A simple program to easily add, remove or change the DNS of Windows. Pick a DNS server from the system tray with one click, see which one is active, and test which one is fastest.
 
-## Please Pay Attention
-- This program currently only supports IPv4.
-- This program is made for my personal use. If you also use this program and need some features, please open an issue for it.
-- This program is currently unsigned. You can download its codes or use unsigned releases.
+## Screenshots
+![The DNS on Tray settings window.](screenshot1.png "Settings window")
+![The DNS on Tray menu in the system tray.](screenshot2.png "Tray menu")
+![The settings window in Farsi.](screenshot3.png "Farsi UI")
 
-## Screenshot
-![Screenshot of DNS on Try program on the system tray.](screenshot1.jpg "Screenshot of DNS on Try Program")
+## Features
+- **One-click switching** from the tray menu. A left click on the tray icon (or **Ctrl+Alt+D**) opens the settings window.
+- **See the active DNS**: a ✓ next to it in the menu and the list, a "Current DNS" line, and a green dot on the tray icon while a custom DNS is set.
+- **IPv4 and IPv6** servers; the second server is optional.
+- **DNS over HTTPS (DoH)** on Windows 11: entries with a DoH URL use encrypted DNS automatically.
+- **Health check**: *Test* sends a real DNS query to each server of the selected entry; *Test all* sorts the list by speed. It warns when a VPN/proxy intercepts DNS, since the results would be meaningless.
+- **Choose the network adapter** to change, or let the app use every connected adapter.
+- **Add, edit and remove** your own servers; **import/export** the list as a JSON file.
+- **Run as administrator** option: asks for permission once, so switching no longer shows a UAC prompt every time.
+- **Launch on startup**.
+- **English and Farsi** interface (follows the Windows language, or pick one from the tray menu).
 
-![Another screenshot of DNS on Try program on the system tray.](screenshot2.jpg "Another screenshot of DNS on Try Program")
-
-## Supported DNS Servers by Default
-- Cloudflare
-- Google Public DNS
+## Default DNS Servers
+- Cloudflare (with IPv6 and DoH)
+- Google Public DNS (with IPv6 and DoH)
+- OpenDNS (with IPv6 and DoH)
 - Shecan.ir
 - Electro
 - 403.online
@@ -22,19 +30,42 @@ A simple program to easily add, remove or change current DNS of the Windows. Thi
 - Pishgaman.net
 - Shatel.ir
 - Hostiran.net
+- Bertina.ir
+- Penta Server
+
+## Download
+Download the latest version from the [releases page](https://github.com/LordArma/DNS-on-Tray/releases), unzip it and run `DNS on Tray.exe`. The release build includes .NET, so nothing else needs to be installed.
+
+Please note:
+- Windows 10 or 11 is required; DNS over HTTPS needs Windows 11.
+- The program is unsigned, so Windows SmartScreen may warn the first time you run it.
+- Changing DNS needs administrator permission (see the *Run as administrator* option).
+
+## Build from Source
+Requires the [.NET 10 SDK](https://dotnet.microsoft.com/download) on Windows.
+
+```powershell
+dotnet build
+dotnet test
+dotnet run --project "DNS on Tray"
+
+# Single-file release build (includes .NET):
+dotnet publish "DNS on Tray" -c Release -r win-x64
+```
 
 ## To-Do List Without Specific Order
-- [ ] Support Ipv6
-- [ ] Support Single DNS
-- [ ] Package & Sign Releases
-- [ ] Selected DNS Status (Which DNS is Selected?)
-- [ ] Form Validation (Is DNS Entered in Correct Way?)
+- [x] Support IPv6
+- [x] Support Single DNS
+- [x] Selected DNS Status (Which DNS is Selected?)
+- [x] Form Validation (Is DNS Entered in Correct Way?)
 - [x] Check DNS Health (Does it Working?)
-- [ ] Test Overall Functionality on Windows 10 (I Just Tested on Windows 11)
-- [ ] Make a Logo
-- [ ] Better Icon for System Tray
-- [ ] Farsi UI
+- [x] Better Icons
+- [x] Farsi UI
+- [x] DNS over HTTPS
+- [x] Import/Export Servers
+- [ ] Sign Releases
+- [ ] Test Overall Functionality on Windows 10
 - [ ] Gilaki UI
 
-## Releases
-You can always download the last releases [here](https://github.com/LordArma/DNS-on-Tray/releases).
+## License
+[MIT](LICENSE.txt)
