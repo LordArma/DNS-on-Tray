@@ -64,9 +64,34 @@ namespace DNS_on_Tray.Tests
             }
             UseDatabase("old.db");
 
-            Assert.Equal(2, DNS.All().Count);
+            // The 2 existing rows plus the defaults added after v0.7 (Bertina.ir, Penta Server); no full reseed.
+            Assert.Equal(4, DNS.All().Count);
             Assert.Equal("https://cloudflare-dns.com/dns-query", DNS.Find("Cloudflare")!.DoH());
             Assert.Equal("", DNS.Find("My Home")!.DNS1v6());
+        }
+
+        [Fact]
+        public void OldDatabase_GetsNewDefaultsOnce()
+        {
+            string path = UseDatabase("seed.db");
+            using (var connection = new SqliteConnection($"Data Source={path}"))
+            {
+                connection.Open();
+                var cmd = connection.CreateCommand();
+                cmd.CommandText =
+                    "CREATE TABLE dnsTable (dnsName VARCHAR(32) Primary Key, dns1 VARCHAR(32), dns2 VARCHAR(32));" +
+                    "INSERT INTO dnsTable VALUES ('Cloudflare','1.1.1.1','1.0.0.1'),('My Penta','185.93.71.227','');";
+                cmd.ExecuteNonQuery();
+            }
+            UseDatabase("seed.db");
+
+            Assert.NotNull(DNS.Find("Bertina.ir"));
+            Assert.Null(DNS.Find("Penta Server"));   // same server already saved under another name
+
+            // Removed defaults are not added back on the next start.
+            new DNS("Bertina.ir", "", "").Remove();
+            UseDatabase("seed.db");
+            Assert.Null(DNS.Find("Bertina.ir"));
         }
 
         [Fact]

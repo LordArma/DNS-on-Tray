@@ -365,8 +365,19 @@ namespace DNS_on_Tray
                 new DNS("Pishgaman.net", "5.202.100.100", "5.202.100.101"),
                 new DNS("Shatel.ir", "85.15.1.14", "85.15.1.15"),
                 new DNS("Hostiran.net", "172.29.0.100", "172.29.2.100"),
+                new DNS("Bertina.ir", "193.186.32.32", ""),
+                new DNS("Penta Server", "185.93.71.227", "185.93.71.228"),
             };
         }
+
+        /// <summary>
+        /// Defaults added in later versions, by the seed version that introduced them. Existing
+        /// databases get these once (see DNS.MakeDB) without re-adding entries the user removed.
+        /// </summary>
+        public static readonly Dictionary<int, string[]> DefaultsAddedInSeedVersion = new()
+        {
+            [2] = new[] { "Bertina.ir", "Penta Server" },
+        };
 
         public static void AddPopularDNS()
         {

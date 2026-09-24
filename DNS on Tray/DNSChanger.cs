@@ -191,6 +191,47 @@ namespace DNS_on_Tray
 
             if (created)
                 AddPopularDNS();
+
+            UpdateDefaults(created);
+        }
+
+        /// <summary>
+        /// Adds default servers introduced after this database was created. The applied seed
+        /// version is stored in the meta table so each batch is offered only once.
+        /// </summary>
+        private static void UpdateDefaults(bool created)
+        {
+            int latest = DefaultsAddedInSeedVersion.Keys.DefaultIfEmpty(1).Max();
+
+            using SqliteConnection connection = new SqliteConnection($"Data Source={dbPath}");
+            connection.Open();
+            using SqliteCommand sqliteCmd = connection.CreateCommand();
+
+            sqliteCmd.CommandText = "CREATE TABLE IF NOT EXISTS meta (key VARCHAR(32) Primary Key, value VARCHAR(256))";
+            sqliteCmd.ExecuteNonQuery();
+
+            sqliteCmd.CommandText = "SELECT value FROM meta WHERE key='seedVersion'";
+            int applied = created ? latest : Convert.ToInt32(sqliteCmd.ExecuteScalar() ?? "1");
+
+            if (applied < latest)
+            {
+                HashSet<string> names = DefaultsAddedInSeedVersion
+                    .Where(kv => kv.Key > applied)
+                    .SelectMany(kv => kv.Value)
+                    .ToHashSet();
+
+                foreach (DNS dns in PopularDNS().Where(d => names.Contains(d.Name())))
+                {
+                    // Skip when the user already has the name or the same server under another name.
+                    bool present = NameTaken(dns.Name()) || All().Any(d => d.DNS1() == dns.DNS1());
+                    if (!present)
+                        dns.Save();
+                }
+            }
+
+            sqliteCmd.CommandText = "INSERT OR REPLACE INTO meta (key, value) VALUES ('seedVersion', @version)";
+            sqliteCmd.Parameters.AddWithValue("@version", latest.ToString());
+            sqliteCmd.ExecuteNonQuery();
         }
 
         private static bool CreateTable()
