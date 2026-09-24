@@ -108,6 +108,26 @@ namespace DNS_on_Tray
         }
 
         /// <summary>
+        /// The configured servers in order; DNS2 is optional and left out when empty.
+        /// </summary>
+        public List<string> Servers()
+        {
+            List<string> servers = new List<string> { dns1 };
+            if (dns2 != "")
+                servers.Add(dns2);
+
+            return servers;
+        }
+
+        /// <summary>
+        /// Servers as display text, e.g. "1.1.1.1, 1.0.0.1".
+        /// </summary>
+        public string ServersText()
+        {
+            return string.Join(", ", Servers());
+        }
+
+        /// <summary>
         /// Makes sure the table exists, seeding the default servers when it is created.
         /// A file that is not a valid database is kept as a .bak copy and replaced.
         /// </summary>
@@ -185,6 +205,29 @@ namespace DNS_on_Tray
                         sqliteCmd.ExecuteNonQuery();
                     }
                 }
+        }
+
+        /// <summary>
+        /// Replaces the saved entry called <paramref name="oldName"/> with this one (the name may change).
+        /// </summary>
+        public void Update(string oldName)
+        {
+            MakeDB();
+
+            using (SqliteConnection connection = new SqliteConnection($"Data Source={dbPath}"))
+            {
+                connection.Open();
+                using (SqliteCommand sqliteCmd = connection.CreateCommand())
+                {
+                    sqliteCmd.CommandText = $"UPDATE {tblName} SET dnsName=@dnsName, dns1=@dns1, dns2=@dns2 WHERE dnsName=@oldName";
+                    sqliteCmd.Parameters.AddWithValue("@dnsName", dnsname);
+                    sqliteCmd.Parameters.AddWithValue("@dns1", dns1);
+                    sqliteCmd.Parameters.AddWithValue("@dns2", dns2);
+                    sqliteCmd.Parameters.AddWithValue("@oldName", oldName);
+
+                    sqliteCmd.ExecuteNonQuery();
+                }
+            }
         }
 
         public void Remove()

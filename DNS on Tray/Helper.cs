@@ -31,6 +31,16 @@ namespace DNS_on_Tray
             Failed
         }
 
+        public sealed record Adapter(string Id, string Name, int Index, bool IsUp);
+
+        public sealed record CurrentDnsInfo(string AdapterName, bool Automatic, List<string> Servers);
+
+        private const string SettingsKey = "SOFTWARE\\DNS on Tray";
+        private const string RunKey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
+        private const string RunValue = "dnsontry";
+        public const string ElevatedTaskName = "DNS on Tray";
+        public const string FromTaskArgument = "--from-task";
+
         /// <summary>
         /// Returns true when the text is a plain dotted-quad IPv4 address (e.g. "1.1.1.1").
         /// IPAddress.TryParse alone also accepts forms like "1" or "0x01010101", so the
@@ -44,19 +54,46 @@ namespace DNS_on_Tray
                 && ip.ToString() == text;
         }
 
-        /// <summary>
-        /// Interface indexes of the adapters that are connected and carry an IPv4 default
-        /// route, i.e. the ones actually used for internet traffic.
-        /// </summary>
-        private static List<int> ActiveInterfaceIndexes()
+        #region Settings
+
+        private static string? GetSetting(string name)
         {
-            List<int> indexes = new List<int>();
+            using RegistryKey? key = Registry.CurrentUser.OpenSubKey(SettingsKey);
+            return key?.GetValue(name) as string;
+        }
+
+        private static void SetSetting(string name, string? value)
+        {
+            using RegistryKey key = Registry.CurrentUser.CreateSubKey(SettingsKey);
+            if (value == null)
+                key.DeleteValue(name, false);
+            else
+                key.SetValue(name, value);
+        }
+
+        /// <summary>
+        /// Id of the adapter the user picked, or null for "automatic" (every connected adapter
+        /// with an IPv4 default gateway).
+        /// </summary>
+        public static string? SelectedAdapterId
+        {
+            get => GetSetting("Adapter");
+            set => SetSetting("Adapter", value);
+        }
+
+        #endregion
+
+        #region Adapters
+
+        /// <summary>
+        /// Adapters that can take an IPv4 DNS setting, connected or not.
+        /// </summary>
+        public static List<Adapter> ListAdapters()
+        {
+            List<Adapter> adapters = new List<Adapter>();
 
             foreach (NetworkInterface nic in NetworkInterface.GetAllNetworkInterfaces())
             {
-                if (nic.OperationalStatus != OperationalStatus.Up)
-                    continue;
-
                 if (nic.NetworkInterfaceType == NetworkInterfaceType.Loopback ||
                     nic.NetworkInterfaceType == NetworkInterfaceType.Tunnel)
                     continue;
@@ -64,33 +101,103 @@ namespace DNS_on_Tray
                 if (!nic.Supports(NetworkInterfaceComponent.IPv4))
                     continue;
 
-                IPInterfaceProperties props = nic.GetIPProperties();
-                bool hasGateway = props.GatewayAddresses.Any(g =>
-                    g.Address.AddressFamily == AddressFamily.InterNetwork &&
-                    !g.Address.Equals(IPAddress.Any));
+                IPv4InterfaceProperties? ipv4 = nic.GetIPProperties().GetIPv4Properties();
+                if (ipv4 == null)
+                    continue;
 
-                if (hasGateway)
-                    indexes.Add(props.GetIPv4Properties().Index);
+                adapters.Add(new Adapter(nic.Id, nic.Name, ipv4.Index, nic.OperationalStatus == OperationalStatus.Up));
             }
 
-            return indexes;
+            return adapters.OrderBy(a => a.Name).ToList();
+        }
+
+        private static bool HasIPv4Gateway(NetworkInterface nic)
+        {
+            return nic.GetIPProperties().GatewayAddresses.Any(g =>
+                g.Address.AddressFamily == AddressFamily.InterNetwork &&
+                !g.Address.Equals(IPAddress.Any));
+        }
+
+        /// <summary>
+        /// The adapters DNS changes apply to: the selected adapter when one is picked, otherwise
+        /// the ones that are connected and carry an IPv4 default route (used for internet traffic).
+        /// </summary>
+        private static List<NetworkInterface> TargetInterfaces()
+        {
+            string? selected = SelectedAdapterId;
+
+            return NetworkInterface.GetAllNetworkInterfaces()
+                .Where(nic => nic.OperationalStatus == OperationalStatus.Up)
+                .Where(nic => nic.NetworkInterfaceType != NetworkInterfaceType.Loopback &&
+                              nic.NetworkInterfaceType != NetworkInterfaceType.Tunnel)
+                .Where(nic => nic.Supports(NetworkInterfaceComponent.IPv4))
+                .Where(nic => selected != null ? nic.Id == selected : HasIPv4Gateway(nic))
+                .ToList();
+        }
+
+        private static List<int> TargetInterfaceIndexes()
+        {
+            return TargetInterfaces().Select(nic => nic.GetIPProperties().GetIPv4Properties().Index).ToList();
+        }
+
+        /// <summary>
+        /// The DNS servers currently used by the first target adapter, or null when no adapter
+        /// is connected. "Automatic" means the servers come from DHCP rather than being set by hand.
+        /// </summary>
+        public static CurrentDnsInfo? GetCurrentDNS()
+        {
+            NetworkInterface? nic = TargetInterfaces().FirstOrDefault();
+            if (nic == null)
+                return null;
+
+            List<string> servers = nic.GetIPProperties().DnsAddresses
+                .Where(a => a.AddressFamily == AddressFamily.InterNetwork)
+                .Select(a => a.ToString())
+                .ToList();
+
+            // A manually set DNS is stored in the adapter's NameServer value; it is empty when
+            // the servers come from DHCP.
+            using RegistryKey? key = Registry.LocalMachine.OpenSubKey(
+                $"SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces\\{nic.Id}");
+            bool automatic = string.IsNullOrWhiteSpace(key?.GetValue("NameServer") as string);
+
+            return new CurrentDnsInfo(nic.Name, automatic, servers);
+        }
+
+        #endregion
+
+        #region Changing DNS
+
+        private static ProcessStartInfo PowerShellStartInfo(string script)
+        {
+            string encoded = Convert.ToBase64String(Encoding.Unicode.GetBytes(script));
+
+            ProcessStartInfo info = new ProcessStartInfo("powershell.exe");
+            info.WindowStyle = ProcessWindowStyle.Hidden;
+            info.Arguments = $"-NoProfile -NonInteractive -WindowStyle Hidden -EncodedCommand {encoded}";
+            return info;
         }
 
         /// <summary>
         /// Runs a PowerShell script elevated and waits for it. The script is passed with
-        /// -EncodedCommand so nothing in it is interpreted by a shell.
+        /// -EncodedCommand so nothing in it is interpreted by a shell. When this process is
+        /// already elevated the script runs directly, without a UAC prompt.
         /// </summary>
         private static DnsChangeResult RunPowerShellAsAdmin(string script)
         {
             const int ERROR_CANCELLED = 1223;
 
-            string encoded = Convert.ToBase64String(Encoding.Unicode.GetBytes(script));
-
-            ProcessStartInfo info = new ProcessStartInfo("powershell.exe");
-            info.WindowStyle = ProcessWindowStyle.Hidden;
-            info.UseShellExecute = true;
-            info.Verb = "runas";
-            info.Arguments = $"-NoProfile -NonInteractive -WindowStyle Hidden -EncodedCommand {encoded}";
+            ProcessStartInfo info = PowerShellStartInfo(script);
+            if (IsAdministrator)
+            {
+                info.UseShellExecute = false;
+                info.CreateNoWindow = true;
+            }
+            else
+            {
+                info.UseShellExecute = true;
+                info.Verb = "runas";
+            }
 
             try
             {
@@ -112,12 +219,12 @@ namespace DNS_on_Tray
         }
 
         /// <summary>
-        /// Builds a script that runs <paramref name="perInterface"/> for every active adapter
+        /// Builds a script that runs <paramref name="perInterface"/> for every target adapter
         /// ($i is the interface index), then flushes the DNS cache. Exits 1 on any error.
         /// </summary>
         private static DnsChangeResult ChangeDNS(string perInterface)
         {
-            List<int> indexes = ActiveInterfaceIndexes();
+            List<int> indexes = TargetInterfaceIndexes();
             if (indexes.Count == 0)
                 return DnsChangeResult.NoAdapter;
 
@@ -132,23 +239,30 @@ namespace DNS_on_Tray
             return RunPowerShellAsAdmin(script);
         }
 
+        /// <summary>
+        /// Sets the DNS servers of the target adapters. <paramref name="dns2"/> may be empty.
+        /// </summary>
         public static Task<DnsChangeResult> AddDNS(string dns1, string dns2)
         {
             dns1 = dns1.Trim();
             dns2 = dns2.Trim();
 
             // Addresses end up inside an elevated script, so only strict IPv4 text is allowed.
-            if (!IsValidIPv4(dns1) || !IsValidIPv4(dns2))
+            if (!IsValidIPv4(dns1) || (dns2 != "" && !IsValidIPv4(dns2)))
                 return Task.FromResult(DnsChangeResult.InvalidAddress);
 
+            string servers = dns2 == "" ? $"'{dns1}'" : $"'{dns1}','{dns2}'";
+
             return Task.Run(() => ChangeDNS(
-                $"Set-DnsClientServerAddress -InterfaceIndex $i -ServerAddresses @('{dns1}','{dns2}')"));
+                $"Set-DnsClientServerAddress -InterfaceIndex $i -ServerAddresses @({servers})"));
         }
 
         public static Task<DnsChangeResult> ClearDNS()
         {
             return Task.Run(() => ChangeDNS("Set-DnsClientServerAddress -InterfaceIndex $i -ResetServerAddresses"));
         }
+
+        #endregion
 
         [DllImport("user32")]
         public static extern UInt32 SendMessage(IntPtr hWnd, UInt32 msg, UInt32 wParam, UInt32 lParam);
@@ -200,43 +314,120 @@ namespace DNS_on_Tray
             dns.Save();
         }
 
+        #region Startup
+
         public static void RunAsStartup(bool agree=true)
         {
-#pragma warning disable CS8600
-            RegistryKey rkApp = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
-#pragma warning disable CS8602
-            if (agree) {    
-                rkApp.SetValue("dnsontry", Application.ExecutablePath);
+            using RegistryKey rkApp = Registry.CurrentUser.CreateSubKey(RunKey);
+            if (agree) {
+                rkApp.SetValue(RunValue, $"\"{Application.ExecutablePath}\"");
             }
             else
             {
-                rkApp.DeleteValue("dnsontry", false);
+                rkApp.DeleteValue(RunValue, false);
             }
-#pragma warning restore CS8602
-#pragma warning restore CS8600
         }
 
         public static bool CanRunAsStartup()
         {
-#pragma warning disable CS8600
-            using (RegistryKey key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"))
-            {
-                if (key != null)
-                {
-                    Object o = key.GetValue("dnsontry");
-                    if (o != null)
-                    {
-                        return true;
-                    }
-
-                    return false;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-#pragma warning restore CS8600
+            using RegistryKey? key = Registry.CurrentUser.OpenSubKey(RunKey);
+            return key?.GetValue(RunValue) != null;
         }
+
+        #endregion
+
+        #region Elevated scheduled task
+
+        // "Run as administrator" mode: a scheduled task set to run with highest privileges.
+        // Windows lets the user start their own task without a UAC prompt, so the app is
+        // launched through it and every later DNS change runs without asking again.
+
+        private static (int ExitCode, string Output) RunSchtasks(string arguments)
+        {
+            ProcessStartInfo info = new ProcessStartInfo("schtasks.exe", arguments);
+            info.UseShellExecute = false;
+            info.CreateNoWindow = true;
+            info.RedirectStandardOutput = true;
+            info.RedirectStandardError = true;
+
+            try
+            {
+                using Process? process = Process.Start(info);
+                if (process == null)
+                    return (-1, "");
+
+                string output = process.StandardOutput.ReadToEnd();
+                process.WaitForExit();
+                return (process.ExitCode, output);
+            }
+            catch (Win32Exception)
+            {
+                return (-1, "");
+            }
+        }
+
+        public static bool ElevatedTaskExists()
+        {
+            return RunSchtasks($"/Query /TN \"{ElevatedTaskName}\"").ExitCode == 0;
+        }
+
+        public static bool ElevatedTaskRunsAtLogon()
+        {
+            var (exitCode, output) = RunSchtasks($"/Query /TN \"{ElevatedTaskName}\" /XML");
+            return exitCode == 0 && output.Contains("<LogonTrigger");
+        }
+
+        /// <summary>
+        /// Starts the app through the elevated task. Returns false when the task could not be run.
+        /// </summary>
+        public static bool StartElevatedTask()
+        {
+            return RunSchtasks($"/Run /TN \"{ElevatedTaskName}\"").ExitCode == 0;
+        }
+
+        private static string PsQuote(string text)
+        {
+            return "'" + text.Replace("'", "''") + "'";
+        }
+
+        /// <summary>
+        /// Creates (or replaces) the elevated task, optionally starting the app at logon.
+        /// Needs one UAC prompt when this process is not elevated.
+        /// </summary>
+        public static DnsChangeResult RegisterElevatedTask(bool atLogon)
+        {
+            // Use the signed-in user, not whoever approved the UAC prompt.
+            string user = $"{Environment.UserDomainName}\\{Environment.UserName}";
+
+            string script =
+                "$ErrorActionPreference = 'Stop'\n" +
+                "try {\n" +
+                $"  $action = New-ScheduledTaskAction -Execute {PsQuote(Application.ExecutablePath)} -Argument '{FromTaskArgument}'\n" +
+                $"  $principal = New-ScheduledTaskPrincipal -UserId {PsQuote(user)} -LogonType Interactive -RunLevel Highest\n" +
+                // Defaults would stop the app after 3 days and skip it on battery power.
+                "  $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit ([TimeSpan]::Zero) -MultipleInstances Parallel\n" +
+                (atLogon
+                    ? $"  $trigger = New-ScheduledTaskTrigger -AtLogOn -User {PsQuote(user)}\n" +
+                      $"  Register-ScheduledTask -TaskName {PsQuote(ElevatedTaskName)} -Action $action -Principal $principal -Settings $settings -Trigger $trigger -Force | Out-Null\n"
+                    : $"  Register-ScheduledTask -TaskName {PsQuote(ElevatedTaskName)} -Action $action -Principal $principal -Settings $settings -Force | Out-Null\n") +
+                "  exit 0\n" +
+                "} catch { exit 1 }";
+
+            return RunPowerShellAsAdmin(script);
+        }
+
+        public static DnsChangeResult UnregisterElevatedTask()
+        {
+            string script =
+                "$ErrorActionPreference = 'Stop'\n" +
+                "try {\n" +
+                $"  Unregister-ScheduledTask -TaskName {PsQuote(ElevatedTaskName)} -Confirm:$false\n" +
+                "  exit 0\n" +
+                "} catch { exit 1 }";
+
+            return RunPowerShellAsAdmin(script);
+        }
+
+        #endregion
     }
 }
