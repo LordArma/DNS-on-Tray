@@ -1,4 +1,6 @@
+using System.Drawing.Drawing2D;
 using System.Net.NetworkInformation;
+using System.Runtime.InteropServices;
 using static DNS_on_Tray.Helper;
 
 namespace DNS_on_Tray
@@ -50,15 +52,90 @@ namespace DNS_on_Tray
         private DateTime lastAutoHide = DateTime.MinValue;
         private bool suppressAutoHide;
 
+        // Global hotkey (Ctrl+Alt+D) that shows or hides the window.
+        private const int HotkeyId = 1;
+        private const int WM_HOTKEY = 0x0312;
+        private const uint MOD_ALT = 0x0001, MOD_CONTROL = 0x0002, MOD_NOREPEAT = 0x4000;
+        private bool hotkeyRegistered;
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
+
+        [DllImport("user32.dll")]
+        private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+
+        // Tray icons: the normal one, and one with a green dot while a custom DNS is active.
+        private readonly Icon automaticIcon;
+        private readonly Icon customIcon;
+
         public frmMain()
         {
             InitializeComponent();
+
+            automaticIcon = notifyIcon1.Icon!;
+            customIcon = WithStatusDot(automaticIcon, Color.LimeGreen);
 
             NetworkChange.NetworkAddressChanged += (_, _) => RefreshCurrentDNSFromAnyThread();
             NetworkChange.NetworkAvailabilityChanged += (_, _) => RefreshCurrentDNSFromAnyThread();
         }
 
         #region Window
+
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
+            hotkeyRegistered = RegisterHotKey(Handle, HotkeyId, MOD_CONTROL | MOD_ALT | MOD_NOREPEAT, (uint)Keys.D);
+        }
+
+        protected override void OnHandleDestroyed(EventArgs e)
+        {
+            if (hotkeyRegistered)
+                UnregisterHotKey(Handle, HotkeyId);
+
+            base.OnHandleDestroyed(e);
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            if (m.Msg == WM_HOTKEY && m.WParam == (IntPtr)HotkeyId)
+            {
+                ToggleMainWindow();
+                return;
+            }
+
+            base.WndProc(ref m);
+        }
+
+        /// <summary>
+        /// Draws a small colored dot in the bottom-right corner of the icon.
+        /// </summary>
+        private static Icon WithStatusDot(Icon baseIcon, Color color)
+        {
+            Size size = SystemInformation.SmallIconSize;
+            using Bitmap bitmap = new Bitmap(size.Width, size.Height);
+            using (Graphics g = Graphics.FromImage(bitmap))
+            {
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                using (Icon sized = new Icon(baseIcon, size))
+                    g.DrawIcon(sized, new Rectangle(Point.Empty, size));
+
+                int d = Math.Max(6, size.Width / 2);
+                Rectangle dot = new Rectangle(size.Width - d, size.Height - d, d - 1, d - 1);
+                using (Brush brush = new SolidBrush(color))
+                    g.FillEllipse(brush, dot);
+                using (Pen pen = new Pen(Color.FromArgb(40, 40, 40), Math.Max(1, d / 6)))
+                    g.DrawEllipse(pen, dot);
+            }
+
+            // Icon.FromHandle does not own the handle; clone so the returned icon does, then free it.
+            IntPtr hIcon = bitmap.GetHicon();
+            Icon icon = (Icon)Icon.FromHandle(hIcon).Clone();
+            DestroyIcon(hIcon);
+            return icon;
+        }
+
+        [DllImport("user32.dll")]
+        private static extern bool DestroyIcon(IntPtr hIcon);
 
         public void ShowMainWindow()
         {
@@ -244,6 +321,8 @@ namespace DNS_on_Tray
             item.Name = strMenuItemName;
             item.Text = strMenuItemName;
             item.Image = Resources.dns.ToBitmap();
+            if (hotkeyRegistered)
+                item.ShortcutKeyDisplayString = "Ctrl+Alt+D";
             item.Click += new EventHandler(SettingsMenuItem_Click);
             notifyMenu.Items.Add(item);
 
@@ -336,6 +415,9 @@ namespace DNS_on_Tray
             }
 
             lblCurrent.Text = $"Current DNS: {description}";
+
+            bool custom = currentDns != null && !currentDns.Automatic;
+            notifyIcon1.Icon = custom ? customIcon : automaticIcon;
 
             // The tray tooltip is limited to 127 characters.
             string tooltip = $"DNS on Tray\n{description}";
