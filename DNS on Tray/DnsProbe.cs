@@ -18,20 +18,29 @@ namespace DNS_on_Tray
         /// Returns the round-trip time in milliseconds, or null when the server did not answer
         /// in time or refused the query.
         /// </summary>
-        public static async Task<int?> Measure(string server, CancellationToken cancellationToken)
+        public static Task<int?> Measure(string server, CancellationToken cancellationToken)
         {
             if (!IPAddress.TryParse(server, out IPAddress? ip))
-                return null;
+                return Task.FromResult<int?>(null);
+
+            return Measure(new IPEndPoint(ip, 53), TimeoutMs, cancellationToken);
+        }
+
+        /// <summary>
+        /// Queries a DNS server at any endpoint (tests use a local fake server on another port).
+        /// </summary>
+        internal static async Task<int?> Measure(IPEndPoint endpoint, int timeoutMs, CancellationToken cancellationToken)
+        {
+            IPAddress ip = endpoint.Address;
 
             byte[] query = BuildQuery((ushort)Random.Shared.Next(ushort.MaxValue), TestDomain);
 
             using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            timeout.CancelAfter(TimeoutMs);
+            timeout.CancelAfter(timeoutMs);
 
             try
             {
                 using var udp = new UdpClient(ip.AddressFamily);
-                var endpoint = new IPEndPoint(ip, 53);
 
                 Stopwatch sw = Stopwatch.StartNew();
                 await udp.SendAsync(query, endpoint, timeout.Token);

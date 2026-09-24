@@ -16,6 +16,19 @@ namespace DNS_on_Tray
         private static string tblName = "dnsTable";
         private static bool dbReady = false;
 
+        /// <summary>
+        /// Location of the database file. Tests point this at a temporary file.
+        /// </summary>
+        internal static string DbPath
+        {
+            get => dbPath;
+            set
+            {
+                dbPath = value;
+                dbReady = false;
+            }
+        }
+
         // Columns added after the first release; older databases are migrated in MakeDB.
         private static readonly string[] addedColumns = { "dns1v6", "dns2v6", "doh" };
 

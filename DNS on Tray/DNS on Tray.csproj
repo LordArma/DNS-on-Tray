@@ -2,17 +2,18 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
 	<Version>0.7.0</Version>
     <RootNamespace>DNS_on_Tray</RootNamespace>
     <Nullable>enable</Nullable>
-	<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	<DebugType>embedded</DebugType>
 	<SelfContained>true</SelfContained>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>dns.ico</ApplicationIcon>
 	<PublishSingleFile>true</PublishSingleFile>
+	<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+	<EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
 	<Authors>Arma</Authors>
 	<Description>A simple program to easily add, remove or change current DNS of the Windows.</Description>
 	<Copyright>The MIT License</Copyright>
@@ -29,6 +30,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="DNS on Tray.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="dns.ico" />
   </ItemGroup>
 
@@ -40,7 +45,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.4" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.12" />
   </ItemGroup>
 
   <ItemGroup>

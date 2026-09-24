@@ -3,6 +3,7 @@ name: DNS on Tray
 on:
   push:
     branches: [ "master" ]
+    tags: [ "v*" ]
   pull_request:
     branches: [ "master" ]
 
@@ -16,15 +17,28 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 10.0.x
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build --no-restore -c Release
+    - name: Test
+      run: dotnet test --no-build -c Release --verbosity normal
 
-    - name: Upload a Build Artifact
-      uses: actions/upload-artifact@v4.3.3
+    # Self-contained single file: runs without .NET installed (~50 MB).
+    - name: Publish (self-contained)
+      run: dotnet publish "DNS on Tray/DNS on Tray.csproj" -c Release -r win-x64 -o publish/self-contained
+    # Framework-dependent single file: needs the .NET 10 Desktop Runtime (~2.5 MB).
+    - name: Publish (framework-dependent)
+      run: dotnet publish "DNS on Tray/DNS on Tray.csproj" -c Release -r win-x64 --self-contained false -p:EnableCompressionInSingleFile=false -o publish/framework-dependent
+
+    - name: Upload self-contained build
+      uses: actions/upload-artifact@v4
       with:
         name: DNS-on-Tray
-        path: D:\a\DNS-on-Tray\DNS-on-Tray\DNS on Tray\bin\Debug\
-      
+        path: publish/self-contained/DNS on Tray.exe
+    - name: Upload framework-dependent build
+      uses: actions/upload-artifact@v4
+      with:
+        name: DNS-on-Tray-framework-dependent
+        path: publish/framework-dependent/DNS on Tray.exe
